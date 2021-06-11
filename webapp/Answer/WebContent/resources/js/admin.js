@@ -44,14 +44,14 @@ const Admin = {
                   <div class="title">Permissions</div>
                 </v-card-title>
                 <v-card-text>
-                  <v-switch :label="'Can View: ' + (editView ? 'Yes' : 'No')" v-model="editView"></v-switch>
-                  <v-switch :label="'Can Annotate: ' + (editAnnotate ? 'Yes' : 'No')" v-model="editAnnotate"></v-switch>
-                  <v-switch :label="'Can Select Variants: ' + (editSelect ? 'Yes' : 'No')" v-model="editSelect"></v-switch>
-                  <v-switch :label="'Can Assign Cases: ' + (editAssign ? 'Yes' : 'No')" v-model="editAssign"></v-switch>
-                  <v-switch :label="'Can Review Cases: ' + (editReview ? 'Yes' : 'No')" v-model="editReview"></v-switch>
-                  <v-switch :label="'Can Hide Annotations: ' + (editHide ? 'Yes' : 'No')" v-model="editHide"></v-switch>
-                  <v-switch :label="'Receive All Notifications: ' + (editNotification ? 'Yes' : 'No')" v-model="editNotification"></v-switch>
-                  <v-switch :label="'Is Admin: ' + (editAdmin ? 'Yes' : 'No')" v-model="editAdmin"></v-switch>
+                  <v-switch :label="'Can View: ' + (editView ? 'Yes' : 'No')" v-model="editView" color="primary"></v-switch>
+                  <v-switch :label="'Can Annotate: ' + (editAnnotate ? 'Yes' : 'No')" v-model="editAnnotate" color="primary"></v-switch>
+                  <v-switch :label="'Can Select Variants: ' + (editSelect ? 'Yes' : 'No')" v-model="editSelect" color="primary"></v-switch>
+                  <v-switch :label="'Can Assign Cases: ' + (editAssign ? 'Yes' : 'No')" v-model="editAssign" color="primary"></v-switch>
+                  <v-switch :label="'Can Review Cases: ' + (editReview ? 'Yes' : 'No')" v-model="editReview" color="primary"></v-switch>
+                  <v-switch :label="'Can Hide Annotations: ' + (editHide ? 'Yes' : 'No')" v-model="editHide" color="primary"></v-switch>
+                  <v-switch :label="'Receive All Notifications: ' + (editNotification ? 'Yes' : 'No')" v-model="editNotification" color="primary"></v-switch>
+                  <v-switch :label="'Is Admin: ' + (editAdmin ? 'Yes' : 'No')" v-model="editAdmin" color="primary"></v-switch>
                 </v-card-text>
               </v-card>
             </v-flex>
@@ -146,8 +146,10 @@ const Admin = {
       Manage Application <span v-text="getAppVersion()"></span>
     </v-toolbar-title>
     <v-spacer></v-spacer>
+    <v-btn light v-for="button in buttons" :key="button.text" @click="scrollTo(button)" color="white">{{ button.text }}</v-btn>
   </v-toolbar>
 
+ 
   <data-table ref="userTable" :fixed="false" :fetch-on-created="true" table-title="Users" :initial-sort="'fullName'" no-data-text="No Data"
     data-url="./getAllUsers" class="pb-3">
     <v-fade-transition slot="action1">
@@ -169,7 +171,7 @@ const Admin = {
   </data-table>
 
   <data-table ref="groupTable" :fixed="false" :fetch-on-created="true" table-title="Groups" :initial-sort="'name'" no-data-text="No Data"
-    data-url="./getAllGroups" >
+    data-url="./getAllGroups" class="mt-2">
     <v-fade-transition slot="action1">
       <v-tooltip bottom>
         <v-btn aria-label="Add Group" flat icon @click="addGroup" slot="activator">
@@ -188,7 +190,8 @@ const Admin = {
     </v-list-tile>
   </data-table>
 
-  <gene-sets-edit></gene-sets-edit>
+  <gene-sets-edit ref="geneSetElt"></gene-sets-edit>
+  <clinical-tests-edit ref="clinicalTestElt"></clinical-tests-edit>
 
 </div>`,
   data() {
@@ -231,7 +234,16 @@ const Admin = {
       editGroupName: "",
       editDescription: "",
       showPasswordIcon: true,
-      editPassword: ""
+      editPassword: "",
+      buttons: [{
+        text: "Users", target: "userTable"
+      }, {
+        text: "Groups", target: "groupTable"
+      }, {
+        text: "Gene Sets", child: "geneSetElt", target: "geneSetTable"
+      }, {
+        text: "Clinical Tests", child: "clinicalTestElt", target: "clinicalTestsTable"
+      }]
     }
   },
   methods: {
@@ -467,6 +479,17 @@ const Admin = {
     },
     getAuthType() {
       return authType;
+    },
+    scrollTo(button) {
+      var target = null;
+      var options = {offset: 7}
+      if (button.child) {
+        target = this.$refs[button.child].$refs[button.target];
+      }
+      else {
+        target = this.$refs[button.target];
+      }
+      this.$vuetify.goTo(target, options);
     }
   },
   mounted: function () {

@@ -1,7 +1,12 @@
 package utsw.bicf.answer.reporting.parse;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import utsw.bicf.answer.controller.serialization.FlagValue;
+import utsw.bicf.answer.controller.serialization.VuetifyIcon;
 import utsw.bicf.answer.model.extmapping.Trial;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -31,6 +36,8 @@ public class BiomarkerTrialsRow {
 	String additionalRequiredBiomarkers;
 	Boolean isSelected;
 	boolean readonly;
+	boolean isAddendum;
+	FlagValue iconFlags;
 	
 	public BiomarkerTrialsRow() {
 	}
@@ -131,4 +138,26 @@ public class BiomarkerTrialsRow {
 		this.readonly = readonly;
 	}
 
+	public boolean isAddendum() {
+		return isAddendum;
+	}
+
+	public void setAddendum(boolean isAddendum) {
+		this.isAddendum = isAddendum;
+	}
+
+	public FlagValue getIconFlags() {
+		return iconFlags;
+	}
+
+	public void setIconFlags(FlagValue iconFlags) {
+		this.iconFlags = iconFlags;
+	}
+
+	public void updateAsAddendum() {
+		this.setAddendum(true);
+		List<VuetifyIcon> icons = new ArrayList<VuetifyIcon>();
+		icons.add(new VuetifyIcon("mdi-alert-decagram", "warning", "This is a trial addendum"));
+		iconFlags = new FlagValue(icons);
+	}
 }

@@ -44,11 +44,12 @@ Vue.component('existing-reports', {
 </v-toolbar>
 <v-card>
     <v-card-text class="pl-2 pr-2 subheading">
-        Amending a report will create a new report with the latest case annotations.<br/>
-        The finalized report (<b>{{ amendingReportName }}</b>)
+    How does it work?<br/><br/>
+        - amending a report will create a new report with the latest case annotations.<br/>
+        - the finalized report (<b>{{ amendingReportName }}</b>)
         will be marked as amended and the new report will need to be saved and finalized.<br/>
         <br/>
-        Please state the reason for this amendment:
+        Please state the reason for this amendment (required):
         <v-textarea textarea
             v-model="amendmentReason" label="Amendment Reason">
         </v-textarea>
@@ -71,10 +72,13 @@ Vue.component('existing-reports', {
 </v-toolbar>
 <v-card>
     <v-card-text class="pl-2 pr-2 subheading">
-        Modifying report <b>{{ addendingReportName }}</b> 
-        will update the report with the latest case annotations.<br/>
-        The report will keep all existing notes and variants, only new variants will be added.<br/> 
-        Nothing else can be modified.
+        How does it work?<br/><br/>
+        - you are about to <b>unfinalize</b> report <b>{{ addendingReportName }}</b>.<br/>
+        - only <b>new annotations and clinical trials</b> will be added.<br/>
+        - the report will keep all existing notes and variants, <b>no new variants</b> can be added.<br/>
+        - click on the report's <b>Update Addendum</b> button to pull in new annotations.<br/>
+        - only the <b>Addendum Summary</b> can be modified.<br/><br/>
+        This action is irreversible.
     </v-card-text>
     <v-card-actions class="card-actions-bottom">
         <v-btn class="mr-2" color="warning" @click="addendReport()" slot="activator" :loading="addendingReportLoading">Confirm
@@ -121,33 +125,27 @@ Vue.component('existing-reports', {
         <v-card :color="isReportSelected(report) ? 'amber accent-2' : ''">
             <v-card-text>
             <v-list :class="['dense-tiles', isReportSelected(report) ? 'amber accent-2' : '']" :color="isReportSelected(report) ? 'amber accent-2' : ''">
-            <v-list-tile v-if="report.finalized || report.amended || report.addendum">
+            <v-list-tile v-if="needsSpecialHeader(report)">
             <v-list-tile-content class="pb-2">
                 <v-layout class="full-width" justify-space-between>
                     <v-flex class="text-xs-left xs">
-                        <span class="'selectable'" v-if="report.finalized && !report.amended">
+                        <span class="'selectable'" v-if="isPureFinalized(report)">
                             <b>Finalized <span v-text="parseFinalizedDate(report)"></span></b>
                             <v-icon color="primary" class="pb-1">check</v-icon>
                         </span>
-                        <v-tooltip bottom v-if="report.amended && !report.addendum">
-                            <span slot="activator" class="'selectable'">
-                            <b>Amended (cannot be changed)</b>
-                            <v-icon color="error" class="pb-1">mdi-close-octagon</v-icon>
-                            </span>
-                            <span>This report has been finalized and amended.<br/>
-                            No further change can be made to this report.<br/>
-                            Create a new report to get the latest annotations for this case.
-                            <br/><br/>
-                            Reason: {{ report.amendmentReason }}
-                            </span>
-                        </v-tooltip>
+                        <span class="'selectable'" v-if="report.amended">
+                        <b>Amended </b>(replaced by {{ report.supersededByReportId }})<br/><b>Reason:</b> {{ report.amendmentReason }}
+                        </span>
+                        <span class="'selectable'" v-if="isReplacingAmended(report)">
+                        <b>To Finalize </b>(replacing {{ report.supersedsReportId }})
+                        </span>
                         <v-tooltip bottom v-if="!report.finalized && report.addendum">
                             <span slot="activator" class="'selectable'">
                             <b>Report with Addendum</b>
                             <v-icon color="primary" class="pb-1">mdi-square-edit-outline</v-icon>
                             </span>
                             <span>This report contains an addendum.<br/>
-                            Only new annotations since the last report can be modified.
+                            You can only modify the Addendum Summary.
                             </span>
                         </v-tooltip>
                     </v-flex>
@@ -223,16 +221,14 @@ Vue.component('existing-reports', {
             :disabled="finalizeButtonDisabled(report)">
             Finalize
             </v-btn>
-            <span v-show="report.finalized">This report has already been finalized</span>
-            <span v-show="!report.finalized && finalizeButtonDisabled(report)">Load the report first. All edits must be saved.</span>
-            <span v-show="!finalizeButtonDisabled(report)">Finalize the report. NO OTHER REPORT CAN BE FINALIZED AFTER THIS ONE</span>
+            <span v-text="getFinalizedButtonTooltip(report)"></span>
             </v-tooltip>
             </v-fleX>
 
             <v-flex>
-            <v-tooltip bottom v-if="report.finalized && !report.addendum">
+            <v-tooltip bottom v-if="report.finalized && !report.addendum && !report.amended">
             <v-btn slot="activator" @click="openAmendmentConfirmationDialog(report)"
-            :disabled="!canBeAmended(report)">Amendment</v-btn>
+            :disabled="!canBeAmended(report)">Amendment...</v-btn>
             <span v-if="canBeAmended(report)">Amend the report.<br/>
             THIS WILL CREATE AN ENTIRELY NEW REPORT FROM THE LATEST ANNOTATIONS</span>
             <span v-if="!canBeAmended(report)">You cannot amend this report.</span>
@@ -240,12 +236,19 @@ Vue.component('existing-reports', {
             </v-fleX>
 
             <v-flex>
-            <v-tooltip bottom v-if="report.finalized && !report.amended">
+            <v-tooltip bottom v-if="report.finalized && !report.amended && !report.addendum">
             <v-btn slot="activator" @click="openAddendumConfirmationDialog(report)"
-            :disabled="!canBeAddended(report)">Addendum</v-btn>
-            <span v-if="canBeAddended(report)">Add information the report without modify existing data.<br/>
-            THIS WILL UPDATE THE REPORT WITH THE LATEST ANNOTATIONS</span>
+            :disabled="!canBeAddended(report)">Start Addendum...</v-btn>
+            <span v-if="canBeAddended(report)">Add information the report<br/>
+            Only new annotations on selected variants can be added.<br/></span>
             <span v-if="!canBeAddended(report)">You cannot modify this report.</span>
+            </v-tooltip>
+            </v-fleX>
+
+            <v-flex>
+            <v-tooltip bottom v-if="canBeUpdated(report)">
+            <v-btn slot="activator" @click="updateAddendum(report)" :loading="addendingReportLoading">Update Addendum</v-btn>
+            <span>Update with latest annotations</span>
             </v-tooltip>
             </v-fleX>
 
@@ -304,7 +307,7 @@ Vue.component('existing-reports', {
                 .then(response => {
                     if (response.data.isAllowed && response.data.success) {
                         this.existingReports = response.data.reports;
-                        this.existingReports.forEach((r) => {console.log(r._id['$oid'])});
+                        // this.existingReports.forEach((r) => {console.log(r._id['$oid'])});
                         this.canFinalize = !this.finalizeReportExists();
                         this.getReportDetails(this.$route.query.reportId);
                     }
@@ -458,6 +461,10 @@ Vue.component('existing-reports', {
             }
             this.$emit("addend-report", this.addendingReportId);
         },
+        updateAddendum(report) {
+            this.addendingReportId = report._id['$oid'];
+            this.addendReport();
+        },
         cancelAddendingReport() {
             this.addendingReportName = null;
             this.addendingReportId = null;
@@ -470,6 +477,36 @@ Vue.component('existing-reports', {
             report.finalized && 
             !report.addendum
             && report._id['$oid'] == this.$route.query.reportId; //verify that the selected report is one clicked on
+        },
+        canBeUpdated(report) {
+            return !this.readonly && 
+            !this.reportUnsaved && 
+            !report.finalized && 
+            report.addendum
+            && report._id['$oid'] == this.$route.query.reportId;
+        },
+        isPureFinalized(report) {
+            return  report.finalized && !report.amended;
+        },
+        //replaces an amended report but not yet finalized
+        isReplacingAmended(report) {
+            return !report.finalized && report.supersedsReportId;
+        },
+        needsSpecialHeader(report) {
+            return  report.finalized || report.amended || report.addendum || report.supersedsReportId;
+        },
+        getFinalizedButtonTooltip(report) {
+            if (this.finalizeButtonDisabled(report)) {
+                if (report.amended) {
+                    return "An amended report cannot be finalized again.";
+                }
+                if (!report.finalized) {
+                    return "Load the report first. All edits must be saved.";
+                }
+            }
+            else {
+                return "Finalize the report. NO OTHER REPORT CAN BE FINALIZED AFTER THIS ONE";
+            }
         }
 
     },

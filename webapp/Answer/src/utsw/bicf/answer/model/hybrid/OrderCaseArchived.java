@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import utsw.bicf.answer.controller.ControllerUtil;
 import utsw.bicf.answer.controller.serialization.Button;
 import utsw.bicf.answer.controller.serialization.FlagValue;
 import utsw.bicf.answer.controller.serialization.VuetifyIcon;
@@ -18,6 +17,7 @@ import utsw.bicf.answer.model.User;
 import utsw.bicf.answer.model.extmapping.CaseHistory;
 import utsw.bicf.answer.model.extmapping.OrderCase;
 import utsw.bicf.answer.model.extmapping.Report;
+import utsw.bicf.answer.security.MongoProperties;
 
 public class OrderCaseArchived {
 	
@@ -37,7 +37,7 @@ public class OrderCaseArchived {
 	List<Button> buttons = new ArrayList<Button>();
 //	FlagValue progressFlags;
 	
-	public OrderCaseArchived(ModelDAO modelDAO, OrderCase orderCase, List<User> users, User currentUser) {
+	public OrderCaseArchived(ModelDAO modelDAO, OrderCase orderCase, List<User> users, User currentUser, MongoProperties mongoProps) {
 		this.epicOrderNumber = orderCase.getEpicOrderNumber();
 		this.epicOrderDate =orderCase.getEpicOrderDate();
 		this.oncotreeDiagnosis = orderCase.getOncotreeDiagnosis();
@@ -63,7 +63,7 @@ public class OrderCaseArchived {
 		}
 		if (currentUser.getIndividualPermission().getCanView() 
 				&& CaseHistory.lastStepMatches(orderCase, CaseHistory.STEP_FINALIZED)) {
-			RequestUtils utils = new RequestUtils(modelDAO);
+			RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 			List<Report> allReports;
 			try {
 				allReports = utils.getExistingReports(caseId);

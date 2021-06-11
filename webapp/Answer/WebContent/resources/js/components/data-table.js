@@ -405,14 +405,17 @@ Vue.component('data-table', {
 
 
           <v-tooltip bottom v-if="props.item.tooltips && props.item.tooltips[header.value]" max-width="500px">
-            <span v-if="header.isSafe || containsOnlyBR(props.item[header.value])" slot="activator" v-html="formattedItem(header, props.item[header.value])">
+            <span v-if="header.isSafe" slot="activator" v-html="formattedItem(header, props.item[header.value])">
             <span v-if="!header.isSafe" slot="activator" v-text="formattedItem(header, props.item[header.value])"></span>
             </span>
             <span v-html="props.item.tooltips[header.value]">
             </span>
           </v-tooltip>
           <span v-if="!(props.item.tooltips && props.item.tooltips[header.value]) && header.isSafe" v-html="formattedItem(header, props.item[header.value])"></span>
-          <span v-if="!(props.item.tooltips && props.item.tooltips[header.value]) && !header.isSafe" v-text="formattedItem(header, props.item[header.value])"></span>
+          <span v-if="!(props.item.tooltips && props.item.tooltips[header.value]) && !header.isSafe && !header.isList" v-text="formattedItem(header, props.item[header.value])"></span>
+          <span v-if="!(props.item.tooltips && props.item.tooltips[header.value]) && !header.isSafe && header.isList">
+            <div class="pb-2" v-for="(line, index) in props.item[header.value]" :key="index" v-text="formattedItem(header, line)"></div>
+          </span>
 
           <span v-if="props.item[header.value] && props.item[header.value].iconFlags">
             <v-tooltip bottom v-for="(icon, index) in props.item[header.value].iconFlags" :key="index" v-if="header.isFlag">
@@ -1051,7 +1054,7 @@ Vue.component('data-table', {
             }
             //when not safe, at least remove the br tags for display
             if (typeof itemString == "string") {
-                return itemString.replace("<br/>", " ");
+                return itemString.replace("<br/>", " ").replace("<br>", " ");
             }
             return itemString;
         },

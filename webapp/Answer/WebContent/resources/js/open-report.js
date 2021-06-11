@@ -112,6 +112,15 @@ const OpenReport = {
                                             </v-list-tile-content>
                                         </v-list-tile>
 
+                                        <v-list-tile :class="!reportAddendumNotesVisible ? 'grey--text' : ''" avatar @click="reportAddendumNotesVisible = !reportAddendumNotesVisible">
+                                        <v-list-tile-avatar>
+                                            <v-icon>edit</v-icon>
+                                        </v-list-tile-avatar>
+                                        <v-list-tile-content>
+                                            <v-list-tile-title>Addendum Summary</v-list-tile-title>
+                                        </v-list-tile-content>
+                                    </v-list-tile>
+
                                         <v-list-tile :class="!indicatedTherapiesVisible ? 'grey--text' : ''" avatar @click="indicatedTherapiesVisible = !indicatedTherapiesVisible">
                                             <v-list-tile-avatar>
                                                 <v-icon>mdi-pill</v-icon>
@@ -363,7 +372,72 @@ const OpenReport = {
                         <v-textarea v-if="!readOnlyReportNotes()" hide-details auto-grow
                             v-model="fullReport.summary" class="mr-2 no-height" label="Write your comments here" @input="reportNeedsSaving()">
                         </v-textarea>
-                        <div v-else>{{ fullReport.summary }}</div>
+                        <div v-else class="subheading pt-2 pb-2">
+                        <div v-for="(line, index) in formatSummaryReadOnly(fullReport.summary)" :key="index">
+                            {{ line }}
+                        </div>
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-flex>
+        </v-layout>
+    </v-slide-y-transition>
+
+        <!-- Addendum Summary -->
+        <v-slide-y-transition>
+        <v-layout v-if="reportAddendumNotesVisible && fullReport.addendum">
+            <v-flex xs12 xl9 class="pb-3">
+                <v-card>
+                    <v-toolbar class="elevation-0" dense dark :color="colors.openReport">
+                        <v-menu offset-y offset-x class="ml-0">
+                        <v-btn slot="activator" flat icon dark>
+                            <v-icon color="amber accent-2">edit</v-icon>
+                        </v-btn>
+                        <v-list>
+                            <v-list-tile avatar @click="resetReportAddendumNotes()" :disabled="readOnlyReportAddendumNotes()">
+                                <v-list-tile-avatar>
+                                    <v-icon>settings_backup_restore</v-icon>
+                                </v-list-tile-avatar>
+                                <v-list-tile-content>
+                                    <v-list-tile-title>Restore From Last Saved</v-list-tile-title>
+                                </v-list-tile-content>
+                            </v-list-tile>
+
+                            <v-list-tile avatar @click="reportAddendumNotesVisible = false">
+                                <v-list-tile-avatar>
+                                    <v-icon>cancel</v-icon>
+                                </v-list-tile-avatar>
+                                <v-list-tile-content>
+                                    <v-list-tile-title>Close Addendum Summary</v-list-tile-title>
+                                </v-list-tile-content>
+                            </v-list-tile>
+                        </v-list>
+                    </v-menu>
+                        
+                        <v-toolbar-title  class="ml-0">Addendum Summary</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-tooltip bottom>
+                            <v-btn flat icon @click="resetReportAddendumNotes()" slot="activator" :disabled="readOnlyReportAddendumNotes()">
+                                <v-icon>settings_backup_restore</v-icon>
+                            </v-btn>
+                            <span>Restore Last Saved Addendum Summary</span>
+                        </v-tooltip>
+                        <v-tooltip bottom>
+                            <v-btn flat icon @click="reportAddendumNotesVisible = false" slot="activator">
+                                <v-icon>close</v-icon>
+                            </v-btn>
+                            <span>Close Addendum Summary</span>
+                        </v-tooltip>
+                    </v-toolbar>
+                    <v-card-text class="pl-3">
+                        <v-textarea v-if="!readOnlyReportAddendumNotes()" hide-details auto-grow
+                            v-model="fullReport.addendumSummary" class="mr-2 no-height" label="Write your comments here" @input="reportNeedsSaving()">
+                        </v-textarea>
+                        <div v-else class="subheading pt-2 pb-2">  
+                        <div v-for="(line, index) in formatSummaryReadOnly(fullReport.addendumSummary)" :key="index">
+                        {{ line }}
+                    </div>
+                    </div>
                     </v-card-text>
                 </v-card>
             </v-flex>
@@ -526,6 +600,7 @@ const OpenReport = {
             copyNumberAlterationsVisible: false,
             geneFusionVisible: false,
             reportNotesVisible: false,
+            reportAddendumNotesVisible: false,
             lowCoverageVisible: false,
             fullReport: {},
             currentEdit: {},
@@ -588,6 +663,9 @@ const OpenReport = {
     }, methods: {
         readOnlyReportNotes() {
             return !this.canProceed('canReview') || this.readonly || this.fullReport.finalized || this.fullReport.addendum;
+        },
+        readOnlyReportAddendumNotes() {
+            return !this.canProceed('canReview') || this.readonly || this.fullReport.finalized;
         },
         updateCaseName(fullCaseName) {
             this.caseName = fullCaseName;
@@ -773,6 +851,7 @@ const OpenReport = {
                         this.loadingReportDetails = false;
                         this.patientDetailsVisible = true;
                         this.reportNotesVisible = true;
+                        this.reportAddendumNotesVisible = this.fullReport.addendum;
                         this.indicatedTherapiesVisible = true;
                         this.clinicalTrialsVisible = true;
                         this.strongClinicalSignificanceVisible = true;
@@ -1075,7 +1154,7 @@ const OpenReport = {
                         if (this.$refs.existingReports) {
                             this.snackBarMessage = "Report amended.";
                             this.snackBarVisible = true;
-                            this.urlQuery.reportId = "";
+                            this.urlQuery.reportId = response.data.message;
                             this.updateRoute();
                             this.$refs.existingReports.getExistingReports();
                             this.$refs.existingReports.amendmentDialogVisible = false;
@@ -1093,7 +1172,7 @@ const OpenReport = {
                     }
                     this.handleAxiosError(error);
                 });
-            this.getReportDetails();
+            // this.getReportDetails();
         },
         addendReport(reportId) {
             //TODO
@@ -1133,11 +1212,11 @@ const OpenReport = {
                         this.handleAxiosError(error);
                     }
                 });
-            this.getReportDetails();
+            // this.getReportDetails();
         },
         createEmptyCNVAnnotation(variantId) {
             return {
-                origin: "UTSW",
+                origin: institutionName,
                 text: "Uncertain Clinical Significance",
                 markedForDeletion: false,
                 isVisible: true,
@@ -1381,6 +1460,12 @@ const OpenReport = {
                     this.handleAxiosError(error);
                 });
         },
+        formatSummaryReadOnly(text) {
+            if (text) {
+                return text.split("<br/>");
+            }
+            return [];
+        }
     },
     mounted() {
         this.snackBarMessage = this.readonly ? "View Only Mode: some actions have been disabled" : "",
@@ -1398,6 +1483,7 @@ const OpenReport = {
     created() {
     },
     computed: {
+
     },
     destroyed: function () {
     },

@@ -15,9 +15,9 @@ Vue.component('login-full-page2', {
     </v-toolbar-title>
     <div class="toolbar-image margin-auto" slot="extension">
       <img class="toolbar-image pt-2 pb-2" alt="ngs logo"
-        :src="dataUrlRoot + '/resources/images/screenshots/NGS_Lab_Color.png'">
+        :src="dataUrlRoot + '/media/lab_logo.png'">
       <img class="toolbar-image" alt="utsw master logo"
-        :src="dataUrlRoot + '/resources/images/utsw-master-logo-lg.png'">
+        :src="dataUrlRoot + '/media/institution-master-logo-lg.png'">
     </div>
     <v-spacer></v-spacer>
     <v-tooltip bottom>
@@ -37,9 +37,9 @@ Vue.component('login-full-page2', {
   <v-spacer></v-spacer>
   <div class="toolbar-image">
     <img class="toolbar-image pt-2 pb-2" alt="ngs logo"
-      :src="dataUrlRoot + '/resources/images/screenshots/NGS_Lab_Color.png'">
+      :src="dataUrlRoot + '/media/lab_logo.png'">
     <img class="toolbar-image" alt="utsw master logo"
-      :src="dataUrlRoot + '/resources/images/utsw-master-logo-lg.png'">
+      :src="dataUrlRoot + '/media/institution-master-logo-lg.png'">
   </div>
   <v-tooltip bottom>
   <v-btn slot="activator" flat @click="openGeneSearch()" dark class="teal lighten-2">Gene Search</v-btn>

@@ -70,7 +70,7 @@ const UserPrefs = {
       <span pb-2>You can customize the following settings:<br/></span>
       <v-layout row wrap>
       <v-flex xs12 md8 lg5>
-      <v-switch :label="'Show rewards after annotations: ' + (userPrefs.showGoodies ? 'Yes' : 'No')" v-model="userPrefs.showGoodies"
+      <v-switch :label="'Show rewards after annotations: ' + (userPrefs.showGoodies ? 'Yes' : 'No')" v-model="userPrefs.showGoodies"  color="primary"
       @change="saveUserPrefs"></v-switch>
       </v-flex> 
       </v-layout>

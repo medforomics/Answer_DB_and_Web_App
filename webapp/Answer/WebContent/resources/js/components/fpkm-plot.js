@@ -368,6 +368,9 @@ Vue.component('fpkm-plot', {
     computed: {
         webAppRoot() {
             return webAppRoot;
+        },
+        institutionName() {
+            return institutionName;
         }
     },
     mounted: function () {

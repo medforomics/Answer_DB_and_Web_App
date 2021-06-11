@@ -3,14 +3,12 @@ package utsw.bicf.answer.controller;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,7 +16,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import utsw.bicf.answer.controller.serialization.AjaxResponse;
 import utsw.bicf.answer.dao.ModelDAO;
 import utsw.bicf.answer.db.api.utils.RequestUtils;
 import utsw.bicf.answer.model.IndividualPermission;
@@ -26,6 +23,7 @@ import utsw.bicf.answer.model.User;
 import utsw.bicf.answer.model.extmapping.OrderCase;
 import utsw.bicf.answer.security.AzureOAuth;
 import utsw.bicf.answer.security.FileProperties;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.OtherProperties;
 import utsw.bicf.answer.security.PermissionUtils;
 
@@ -47,6 +45,8 @@ public class MutationalSignatureViewerController {
 	OtherProperties otherProps;
 	@Autowired
 	AzureOAuth azureProps;
+	@Autowired
+	MongoProperties mongoProps;
 
 	@RequestMapping("/mutationalSignatureViewer")
 	public String mutationalSignatureViewer(Model model, HttpSession session, @RequestParam String caseId,
@@ -56,7 +56,7 @@ public class MutationalSignatureViewerController {
 		model.addAttribute("caseId", caseId);
 		ControllerUtil.setGlobalVariables(model, fileProps, otherProps);
 		User user = ControllerUtil.getSessionUser(session);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (user == null) {
 			return ControllerUtil.initializeModelError(model, servletContext);

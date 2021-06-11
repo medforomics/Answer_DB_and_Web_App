@@ -61,7 +61,6 @@ import utsw.bicf.answer.clarity.api.utils.TypeUtils;
 import utsw.bicf.answer.controller.serialization.AjaxResponse;
 import utsw.bicf.answer.controller.serialization.Utils;
 import utsw.bicf.answer.dao.ModelDAO;
-import utsw.bicf.answer.model.AnswerDBCredentials;
 import utsw.bicf.answer.model.Group;
 import utsw.bicf.answer.model.User;
 import utsw.bicf.answer.model.VariantFilter;
@@ -91,6 +90,7 @@ import utsw.bicf.answer.model.extmapping.WhiskerPerCaseData;
 import utsw.bicf.answer.model.hybrid.AnswerLowExonCoverage;
 import utsw.bicf.answer.reporting.parse.MDAReportTemplate;
 import utsw.bicf.answer.security.AzureOAuth;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.NCBIProperties;
 import utsw.bicf.answer.security.OtherProperties;
 import utsw.bicf.answer.security.QcAPIAuthentication;
@@ -104,23 +104,23 @@ import utsw.bicf.answer.security.QcAPIAuthentication;
 public class RequestUtils {
 
 	ModelDAO modelDAO;
-	AnswerDBCredentials dbProps;
+	MongoProperties mongoProps;
 	QcAPIAuthentication qcAPI;
 
-	public RequestUtils(ModelDAO modelDAO) {
+	public RequestUtils(ModelDAO modelDAO, MongoProperties dbProps) {
 		super();
 		this.modelDAO = modelDAO;
-		this.dbProps = modelDAO.getAnswerDBCredentials();
+		this.mongoProps = dbProps;
 	}
 	
 	public RequestUtils(QcAPIAuthentication qcAPI) {
 		this.qcAPI = qcAPI;
 	}
 	
-	public RequestUtils(ModelDAO modelDAO, QcAPIAuthentication qcAPI) {
+	public RequestUtils(ModelDAO modelDAO, QcAPIAuthentication qcAPI, MongoProperties dbProps) {
 		super();
 		this.modelDAO = modelDAO;
-		this.dbProps = modelDAO.getAnswerDBCredentials();
+		this.mongoProps = dbProps;
 		this.qcAPI = qcAPI;
 	}
 	
@@ -187,14 +187,14 @@ public class RequestUtils {
 	}
 
 	private String createAuthHeader() {
-		String auth = dbProps.getUsername() + ":" + dbProps.getPassword();
+		String auth = mongoProps.getUsername() + ":" + mongoProps.getPassword();
 		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("UTF-8")));
 		String authHeader = "Basic " + new String(encodedAuth);
 		return authHeader;
 	}
 
 	public OrderCase[] getActiveCases() throws URISyntaxException, ClientProtocolException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("cases");
 		URI uri = new URI(sbUrl.toString());
 		requestGet = new HttpGet(uri);
@@ -216,7 +216,7 @@ public class RequestUtils {
 	public AjaxResponse assignCaseToUser(List<User> users, String caseId, User caseOwner)
 			throws ClientProtocolException, IOException, URISyntaxException {
 		String userIds = users.stream().map(user -> user.getUserId().toString()).collect(Collectors.joining(","));
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/assignusers").append("?userIds=").append(userIds);
 		URI uri = new URI(sbUrl.toString());
 
@@ -252,7 +252,7 @@ public class RequestUtils {
 			ajaxResponse.setMessage("Case owner is null");
 			return ajaxResponse;
 		}
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/setOwner");
 		URI uri = new URI(sbUrl.toString());
 
@@ -280,7 +280,7 @@ public class RequestUtils {
 	public AjaxResponse assignCaseToGroup(List<Group> groups, String caseId)
 			throws ClientProtocolException, IOException, URISyntaxException {
 		String groupIds = groups.stream().map(group -> group.getGroupId().toString()).collect(Collectors.joining(","));
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/assigngroups").append("?groupIds=").append(groupIds);
 		URI uri = new URI(sbUrl.toString());
 
@@ -326,7 +326,7 @@ public class RequestUtils {
 			@Override
 			public void run() {
 				try {
-					StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+					StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 					sbUrl.append("case/").append(caseId).append("/filter");
 					URI uri = new URI(sbUrl.toString());
 					requestPost = new HttpPost(uri);
@@ -412,7 +412,7 @@ public class RequestUtils {
 	 * @throws URISyntaxException
 	 */
 	public Variant getVariantDetails(String variantId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("variant/"); 
 		sbUrl.append(variantId);
 		URI uri = new URI(sbUrl.toString());
@@ -443,7 +443,7 @@ public class RequestUtils {
 	 * @throws URISyntaxException
 	 */
 	public CNV getCNVDetails(String variantId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("cnv/"); 
 		sbUrl.append(variantId);
 		URI uri = new URI(sbUrl.toString());
@@ -465,7 +465,7 @@ public class RequestUtils {
 	}
 	
 	public Translocation getTranslocationDetails(String variantId) throws URISyntaxException, ClientProtocolException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("translocation/"); 
 		sbUrl.append(variantId);
 		URI uri = new URI(sbUrl.toString());
@@ -487,7 +487,7 @@ public class RequestUtils {
 	}
 	
 	public Virus getVirusDetails(String variantId) throws URISyntaxException, ClientProtocolException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("virus/"); 
 		sbUrl.append(variantId);
 		URI uri = new URI(sbUrl.toString());
@@ -510,7 +510,7 @@ public class RequestUtils {
 	public void saveVariantSelection(AjaxResponse ajaxResponse, String caseId, List<String> selectedSNPVariantIds, 
 			List<String> selectedCNVIds, List<String> selectedTranslocationIds, List<String> selectedVirusIds, User currentUser)
 			throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/selectvariants");
 		URI uri = new URI(sbUrl.toString());
 
@@ -538,7 +538,7 @@ public class RequestUtils {
 
 	public AjaxResponse commitAnnotation(AjaxResponse ajaxResponse, List<Annotation> annotations) throws URISyntaxException, ClientProtocolException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("annotations/");
 		URI uri = new URI(sbUrl.toString());
 		requestPost = new HttpPost(uri);
@@ -571,7 +571,7 @@ public class RequestUtils {
 	 * @throws URISyntaxException
 	 */
 	public OrderCase getCaseSummary(String caseId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/summary");
 		URI uri = new URI(sbUrl.toString());
 
@@ -601,7 +601,7 @@ public class RequestUtils {
 	 */
 	public OrderCase saveCaseSummary(String caseId, OrderCase caseSummary) throws ClientProtocolException, IOException, URISyntaxException {
 
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/summary");
 		URI uri = new URI(sbUrl.toString());
 
@@ -621,7 +621,7 @@ public class RequestUtils {
 	}
 
 	public CaseAnnotation getCaseAnnotation(String caseId) throws URISyntaxException, JsonParseException, JsonMappingException, UnsupportedOperationException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/annotation");
 		URI uri = new URI(sbUrl.toString());
 
@@ -651,7 +651,7 @@ public class RequestUtils {
 	 */
 	public void saveCaseAnnotation(AjaxResponse ajaxResponse, CaseAnnotation annotationToSave) throws URISyntaxException, UnsupportedCharsetException, ClientProtocolException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(annotationToSave.getCaseId()).append("/annotation");
 		URI uri = new URI(sbUrl.toString());
 		requestPost = new HttpPost(uri);
@@ -675,7 +675,7 @@ public class RequestUtils {
 
 	public void saveVariant(AjaxResponse ajaxResponse, Object variant, String variantType) throws URISyntaxException, ClientProtocolException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		String oid = null;
 		switch (variantType) {
 		case "snp":
@@ -719,7 +719,7 @@ public class RequestUtils {
 	
 	public void saveSelectedAnnotations(AjaxResponse ajaxResponse, Object variant, String variantType, String oid) throws URISyntaxException, ClientProtocolException, IOException {
 			ObjectMapper mapper = new ObjectMapper();
-			StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+			StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 			switch(variantType) {
 			case "snp":
 				sbUrl.append("variant/");
@@ -759,7 +759,7 @@ public class RequestUtils {
 
 	public void sendVariantSelectionToMDA(AjaxResponse ajaxResponse, String caseId, List<String> selectedSNPVariantIds,
 			List<String> selectedCNVIds, List<String> selectedTranslocationIds) throws URISyntaxException, UnsupportedCharsetException, ClientProtocolException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/sendToMDA");
 		URI uri = new URI(sbUrl.toString());
 
@@ -798,7 +798,7 @@ public class RequestUtils {
 	 */
 	public AjaxResponse getMocliaContent(String caseId, List<String> selectedSNPVariantIds,
 			List<String> selectedCNVIds, List<String> selectedTranslocationIds) throws URISyntaxException, UnsupportedCharsetException, ClientProtocolException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/moclia");
 		URI uri = new URI(sbUrl.toString());
 
@@ -822,7 +822,7 @@ public class RequestUtils {
 	}
 
 //	public AnnotationSearchResult getGetAnnotationsByGeneAndVariant(String gene, String variant) throws URISyntaxException, JsonParseException, JsonMappingException, UnsupportedOperationException, IOException {
-//		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+//		StringBuilder sbUrl = new StringBuilder(dbProps.getFullUrl());
 //		sbUrl.append("searchannotations/");
 //		URI uri = new URI(sbUrl.toString());
 //
@@ -847,7 +847,7 @@ public class RequestUtils {
 //	}
 
 	public void caseReadyForReview(AjaxResponse ajaxResponse, String caseId) throws URISyntaxException, ClientProtocolException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/review");
 		URI uri = new URI(sbUrl.toString());
 		requestPost = new HttpPost(uri);
@@ -868,7 +868,7 @@ public class RequestUtils {
 	}
 	
 	public void caseReadyForReport(AjaxResponse ajaxResponse, String caseId) throws URISyntaxException, ClientProtocolException, IOException  {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/report");
 		URI uri = new URI(sbUrl.toString());
 		requestPost = new HttpPost(uri);
@@ -894,7 +894,7 @@ public class RequestUtils {
 		toSkip.add("chrY");
 		toSkip.add("chr22_KI270879v1_alt");
 		
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/cnvplot");
 		URI uri = new URI(sbUrl.toString());
 
@@ -933,7 +933,7 @@ public class RequestUtils {
 	
 	public CNVPlotData getCnvPlotData(String caseId, String chrom) throws URISyntaxException, ClientProtocolException, IOException {
 		
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/cnvplot");
 		URI uri = new URI(sbUrl.toString());
 
@@ -1095,7 +1095,7 @@ public class RequestUtils {
 //	}
 
 	public Report getReportDetails(String reportId) throws URISyntaxException, JsonParseException, JsonMappingException, UnsupportedOperationException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("report/"); 
 		sbUrl.append(reportId);
 		URI uri = new URI(sbUrl.toString());
@@ -1116,7 +1116,7 @@ public class RequestUtils {
 	}
 	
 	public MDAReportTemplate getMDATrials(String caseId) throws URISyntaxException, JsonParseException, JsonMappingException, UnsupportedOperationException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/"); 
 		sbUrl.append(caseId);
 		sbUrl.append("/trials");
@@ -1631,7 +1631,7 @@ public class RequestUtils {
 	}
 	
 	public void saveReport(AjaxResponse ajaxResponse, Report reportToSave) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		boolean isNewReport = reportToSave.getMongoDBId() == null;
 		sbUrl.append("case/").append(reportToSave.getCaseId()).append("/savereport");
 		URI uri = new URI(sbUrl.toString());
@@ -1667,7 +1667,7 @@ public class RequestUtils {
 	}
 	
 	public void saveCNV(AjaxResponse ajaxResponse, CNV cnvToSave, String caseId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/cnv");
 		URI uri = new URI(sbUrl.toString());
 
@@ -1696,7 +1696,7 @@ public class RequestUtils {
 	}
 
 	public List<Report> getExistingReports(String caseId) throws JsonParseException, JsonMappingException, UnsupportedOperationException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/"); 
 		sbUrl.append(caseId).append("/reports");
 		URI uri = new URI(sbUrl.toString());
@@ -1718,7 +1718,7 @@ public class RequestUtils {
 	
 	public Map<String, List<Report>> getAllExistingReports(AjaxResponse ajaxResponse) throws JsonParseException, JsonMappingException, UnsupportedOperationException, IOException, URISyntaxException {
 		Map<String, List<Report>> reportsPerCase = null;
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("allreports"); 
 		URI uri = new URI(sbUrl.toString());
 		requestGet = new HttpGet(uri);
@@ -1754,7 +1754,7 @@ public class RequestUtils {
 	}
 
 	public void finalizeReport(AjaxResponse ajaxResponse, Report reportDetails) throws URISyntaxException, ClientProtocolException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("report/"); 
 		sbUrl.append(reportDetails.getMongoDBId().getOid());
 		sbUrl.append("/finalize");
@@ -1777,7 +1777,7 @@ public class RequestUtils {
 	}
 	
 	public void markAsSentToEpic(AjaxResponse ajaxResponse, String caseId, QcAPIAuthentication qcAPI) throws URISyntaxException, ClientProtocolException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/"); 
 		sbUrl.append(caseId);
 		sbUrl.append("/sendToEpic");
@@ -1849,7 +1849,7 @@ public class RequestUtils {
 	
 	
 	public Trial getNCTData(AjaxResponse ajaxResponse, String nctId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("trials/").append(nctId);
 		URI uri = new URI(sbUrl.toString());
 
@@ -1945,7 +1945,7 @@ public class RequestUtils {
 //	}
 
 	public void setDefaultTranscript(AjaxResponse ajaxResponse, String row, String variantId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("variant/").append(variantId);
 		URI uri = new URI(sbUrl.toString());
 
@@ -1971,7 +1971,7 @@ public class RequestUtils {
 	}
 
 	public List<Annotation> getAllClinicalTrials(AjaxResponse ajaxResponse) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("annotation/trials");
 		URI uri = new URI(sbUrl.toString());
 
@@ -2007,7 +2007,7 @@ public class RequestUtils {
 	}
 	
 	public List<Annotation> getAllSNPsForGene(AjaxResponse ajaxResponse, String geneId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("annotation/gene/");
 		sbUrl.append(geneId);
 		URI uri = new URI(sbUrl.toString());
@@ -2044,7 +2044,7 @@ public class RequestUtils {
 	}
 	
 	public List<Variant> getVariantsForGene(AjaxResponse ajaxResponse, String geneId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("variants/");
 		sbUrl.append(geneId);
 		URI uri = new URI(sbUrl.toString());
@@ -2081,7 +2081,7 @@ public class RequestUtils {
 	}
 	
 	public List<WhiskerPerCaseData> getFPKMChartData(AjaxResponse ajaxResponse, String caseId, String geneId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/fpkm/");
 		sbUrl.append(geneId);
 		URI uri = new URI(sbUrl.toString());
@@ -2115,7 +2115,7 @@ public class RequestUtils {
 	}
 	
 	public List<WhiskerPerCaseData> getTMBChartData(AjaxResponse ajaxResponse, String caseId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/tmb");
 		URI uri = new URI(sbUrl.toString());
 
@@ -2151,7 +2151,7 @@ public class RequestUtils {
 		ITD itd = new ITD();
 		itd.setGeneName(gene);
 		
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/itd");
 		URI uri = new URI(sbUrl.toString());
 
@@ -2182,7 +2182,7 @@ public class RequestUtils {
 
 	public List<BAlleleFrequencyData> getBAlleleFreq(String caseId) throws JsonParseException, JsonMappingException, UnsupportedOperationException, IOException, URISyntaxException {
 		List<BAlleleFrequencyData> balleleFreqs = new ArrayList<BAlleleFrequencyData>();
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/ballelefreq"); 
 		URI uri = new URI(sbUrl.toString());
 		requestGet = new HttpGet(uri);
@@ -2203,7 +2203,7 @@ public class RequestUtils {
 	}
 	
 	public void getOncoKbName(AjaxResponse ajaxResponse, String geneName, String notation) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("searchVariantNotation/");
 		URI uri = new URI(sbUrl.toString());
 		Variant tempVariant = new Variant();
@@ -2233,7 +2233,7 @@ public class RequestUtils {
 	}
 
 	public AjaxResponse getMutationSignatureTableForCase(String caseId) throws URISyntaxException, JsonParseException, JsonMappingException, UnsupportedOperationException, IOException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/mutsigs"); 
 		URI uri = new URI(sbUrl.toString());
 		requestGet = new HttpGet(uri);
@@ -2257,7 +2257,7 @@ public class RequestUtils {
 	}
 
 	public void saveFusion(AjaxResponse ajaxResponse, Translocation fusionToSave, String caseId) throws ClientProtocolException, IOException, URISyntaxException {
-		StringBuilder sbUrl = new StringBuilder(dbProps.getUrl());
+		StringBuilder sbUrl = new StringBuilder(mongoProps.getFullUrl());
 		sbUrl.append("case/").append(caseId).append("/translocation");
 		URI uri = new URI(sbUrl.toString());
 

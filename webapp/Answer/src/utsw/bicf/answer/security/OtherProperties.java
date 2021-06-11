@@ -12,6 +12,7 @@ public class OtherProperties {
 	String mutationalSignatureUrl;
 	String rootUrl;
 	String webappName;
+	String institutionName;
 	
 	String epicHl7Hostname;
 	int epicHl7Port;
@@ -121,6 +122,14 @@ public class OtherProperties {
 
 	public void setEpicHl7Port(int epicHl7Port) {
 		this.epicHl7Port = epicHl7Port;
+	}
+
+	public String getInstitutionName() {
+		return institutionName;
+	}
+
+	public void setInstitutionName(String institutionName) {
+		this.institutionName = institutionName;
 	}
 
 }

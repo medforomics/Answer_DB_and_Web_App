@@ -1,12 +1,17 @@
 package utsw.bicf.answer.model.extmapping;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import utsw.bicf.answer.controller.serialization.FlagValue;
+import utsw.bicf.answer.controller.serialization.VuetifyIcon;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CNVReport {
@@ -31,6 +36,9 @@ public class CNVReport {
 	String highestAnnotationTier;
 	String breadth;
 	boolean manualRow;
+	boolean containsAddendum;
+	String addedumComment;
+	FlagValue iconFlags;
 	
 	public CNVReport() {
 		
@@ -308,6 +316,45 @@ public class CNVReport {
 
 	public void setManualRow(boolean manualRow) {
 		this.manualRow = manualRow;
+	}
+
+
+	public boolean isContainsAddendum() {
+		return containsAddendum;
+	}
+
+
+	public void setContainsAddendum(boolean containsAddendum) {
+		this.containsAddendum = containsAddendum;
+	}
+
+
+	public String getAddedumComment() {
+		return addedumComment;
+	}
+
+
+	public void setAddedumComment(String addedumComment) {
+		this.addedumComment = addedumComment;
+	}
+
+
+	public FlagValue getIconFlags() {
+		return iconFlags;
+	}
+
+
+	public void setIconFlags(FlagValue iconFlags) {
+		this.iconFlags = iconFlags;
+	}
+
+
+	public void updateAsAddendum(String diff) {
+		this.setAddedumComment(diff);
+		this.setContainsAddendum(true);
+		List<VuetifyIcon> icons = new ArrayList<VuetifyIcon>();
+		icons.add(new VuetifyIcon("mdi-alert-decagram", "warning", "This is an addendum cnv"));
+		iconFlags = new FlagValue(icons);
 	}
 
 

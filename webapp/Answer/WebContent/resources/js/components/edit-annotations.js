@@ -187,7 +187,7 @@ Vue.component('edit-annotations', {
                                                                 cases/genes/variants:
                                                             </div>
                                                             <v-tooltip bottom>
-                                                                <v-switch hide-details slot="activator" class="no-height mt-0" :disabled="annotation.markedForDeletion || noLevelSelected(annotation) || outsideACase" label="Case Specific"
+                                                                <v-switch hide-details slot="activator" color="primary" class="no-height mt-0" :disabled="annotation.markedForDeletion || noLevelSelected(annotation) || outsideACase" label="Case Specific"
                                                                     v-model="annotation.isCaseSpecific" @change="selectBreadth(annotation)"></v-switch>
                                                                 <span>Select if this annotation only applies to this case
                                                                     <br/>(need to select Gene or Variant Specific first)</span>
@@ -195,7 +195,7 @@ Vue.component('edit-annotations', {
                                                             <v-layout row wrap>
                                                             <v-flex :class="[outsideACase ? 'xs6' : 'xs12', 'pl-0']">
                                                             <v-tooltip bottom>
-                                                                <v-switch hide-details slot="activator" class="no-height" :disabled="annotation.markedForDeletion" label="Gene Specific" v-model="annotation.isGeneSpecific"
+                                                                <v-switch hide-details slot="activator"  color="primary" class="no-height" :disabled="annotation.markedForDeletion" label="Gene Specific" v-model="annotation.isGeneSpecific"
                                                                     @change="selectBreadth(annotation, 'Gene Function')"></v-switch>
                                                                 <span v-if="!annotation.isVariantSpecific">Select either Gene or Variant Specific or both</span>
                                                                 <span v-if="annotation.isGeneSpecific && annotation.isVariantSpecific">Uncheck Variant Specific first</span>
@@ -232,7 +232,7 @@ Vue.component('edit-annotations', {
                                                                 </v-tooltip>
                                                             </v-flex>
                                                             </v-layout>
-                                                            <v-switch hide-details class="no-height" :disabled="annotation.markedForDeletion || outsideACase" 
+                                                            <v-switch hide-details class="no-height" :disabled="annotation.markedForDeletion || outsideACase"  color="primary"
                                                             label="Diagnosis Specific" v-model="annotation.isTumorSpecific"
                                                             ></v-switch>
                                                         </v-card-text>
@@ -245,10 +245,10 @@ Vue.component('edit-annotations', {
                                                             </div>
                                                             <v-tooltip bottom>
                                                                 <v-switch hide-details slot="activator" class="no-height" :disabled="annotation.markedForDeletion || noLevelSelected(annotation)" label="Case Specific"
-                                                                    v-model="annotation.isCaseSpecific" @change="selectBreadth(annotation)"></v-switch>
+                                                                    v-model="annotation.isCaseSpecific" @change="selectBreadth(annotation)" color="primary"></v-switch>
                                                                 <span>Select if this annotation applies to this case only</span>
                                                             </v-tooltip>
-                                                            <v-switch hide-details class="no-height" :disabled="annotation.markedForDeletion" label="Diagnosis Specific" v-model="annotation.isTumorSpecific"></v-switch>
+                                                            <v-switch hide-details class="no-height" :disabled="annotation.markedForDeletion"  color="primary" label="Diagnosis Specific" v-model="annotation.isTumorSpecific"></v-switch>
                                                         </v-card-text>
                                                         <!-- Translocation -->
                                                         <v-card-text class="pl-3 pr-3 pt-3 pb-3" v-if="isTranslocation()  && !hideScope">
@@ -259,17 +259,17 @@ Vue.component('edit-annotations', {
                                                         </div>
                                                         <v-tooltip bottom>
                                                             <v-switch hide-details slot="activator" class="no-height" :disabled="annotation.markedForDeletion || noLevelSelected(annotation)" label="Case Specific"
-                                                                v-model="annotation.isCaseSpecific" @change="selectBreadth(annotation)"></v-switch>
+                                                                v-model="annotation.isCaseSpecific" @change="selectBreadth(annotation)"  color="primary"></v-switch>
                                                             <span>Select if this annotation applies to this case only</span>
                                                         </v-tooltip>
-                                                        <v-switch hide-details class="no-height" :disabled="annotation.markedForDeletion" label="Diagnosis Specific" v-model="annotation.isTumorSpecific"></v-switch>
+                                                        <v-switch hide-details class="no-height" :disabled="annotation.markedForDeletion" color="primary" label="Diagnosis Specific" v-model="annotation.isTumorSpecific"></v-switch>
                                                         <v-tooltip bottom>
-                                                            <v-switch hide-details slot="activator" class="no-height" :disabled="annotation.markedForDeletion || noLevelSelected(annotation)" :label="'Left Gene Specific: ' + annotation.leftGene"
+                                                            <v-switch hide-details slot="activator" class="no-height"  color="primary" :disabled="annotation.markedForDeletion || noLevelSelected(annotation)" :label="'Left Gene Specific: ' + annotation.leftGene"
                                                                 v-model="annotation.isLeftSpecific"></v-switch>
                                                             <span>Select if this annotation applies to the left gene</span>
                                                         </v-tooltip>
                                                         <v-tooltip bottom>
-                                                        <v-switch hide-details slot="activator" class="no-height" :disabled="annotation.markedForDeletion || noLevelSelected(annotation)" :label="'Right Gene Specific: ' + annotation.rightGene"
+                                                        <v-switch hide-details slot="activator" class="no-height"  color="primary" :disabled="annotation.markedForDeletion || noLevelSelected(annotation)" :label="'Right Gene Specific: ' + annotation.rightGene"
                                                             v-model="annotation.isRightSpecific"></v-switch>
                                                         <span>Select if this annotation applies to the right gene</span>
                                                     </v-tooltip>
@@ -282,11 +282,11 @@ Vue.component('edit-annotations', {
                                                         cases or diagnoses:
                                                     </div>
                                                     <v-tooltip bottom>
-                                                        <v-switch hide-details slot="activator" class="no-height" :disabled="annotation.markedForDeletion || noLevelSelected(annotation)" label="Case Specific"
+                                                        <v-switch hide-details slot="activator" class="no-height" color="primary" :disabled="annotation.markedForDeletion || noLevelSelected(annotation)" label="Case Specific"
                                                             v-model="annotation.isCaseSpecific" @change="selectBreadth(annotation)"></v-switch>
                                                         <span>Select if this annotation applies to this case only</span>
                                                     </v-tooltip>
-                                                    <v-switch hide-details class="no-height" :disabled="annotation.markedForDeletion" label="Diagnosis Specific" v-model="annotation.isTumorSpecific"></v-switch>
+                                                    <v-switch hide-details class="no-height" color="primary" :disabled="annotation.markedForDeletion" label="Diagnosis Specific" v-model="annotation.isTumorSpecific"></v-switch>
                                                 </v-card-text>
 
 
@@ -448,7 +448,7 @@ Vue.component('edit-annotations', {
                                                         </v-flex>
                                                         <v-flex xs3 class="mt-3 pt-2 pl-2">
                                                             <v-tooltip bottom>
-                                                            <v-switch hide-details slot="activator" class="no-height" :disabled="annotation.markedForDeletion" label="Drug Resistant" v-model="annotation.drugResistant"></v-switch>
+                                                            <v-switch hide-details slot="activator" class="no-height" color="primary" :disabled="annotation.markedForDeletion" label="Drug Resistant" v-model="annotation.drugResistant"></v-switch>
                                                                 <span>Activate this button to make the variant resistant to the drugs listed.</span>
                                                             </v-tooltip>
                                                         </v-flex>
@@ -623,7 +623,7 @@ Vue.component('edit-annotations', {
                 this.userAnnotations[i].isVisible = false;
             }
             this.userEditingAnnotations.push({
-                origin: "UTSW",
+                origin: institutionName,
                 text: "",
                 markedForDeletion: false,
                 isVisible: true,

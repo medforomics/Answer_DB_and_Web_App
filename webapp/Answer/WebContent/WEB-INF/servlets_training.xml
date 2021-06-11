@@ -176,6 +176,7 @@
 		<property name="webappName" value="${webapp.name}" />
 		<property name="epicHl7Hostname" value="${epic.hl7.host}" />
 		<property name="epicHl7Port" value="${epic.hl7.port}" />
+		<property name="institutionName" value="${institution.name}" />
 	</bean>
 	
 	<bean id="ncbiProps" class="utsw.bicf.answer.security.NCBIProperties">
@@ -252,6 +253,13 @@
 		<property name="apiUrl" value="${clinical.trials.api}" />
 		<property name="studyUrl" value="${clinical.trials.study.url}" />
 	</bean>	
+	
+	<bean id="mongoProps" class="utsw.bicf.answer.security.MongoProperties">
+		<property name="url" value="${mongo.url}" />
+		<property name="port" value="${mongo.port}" />
+		<property name="username" value="${mongo.username}" />
+		<property name="password" value="${mongo.password}" />
+	</bean>	
 	<!-- Setup Hibernate transaction manager -->
 	<bean id="transactionManager"
 		class="org.springframework.orm.hibernate5.HibernateTransactionManager">
@@ -261,7 +269,9 @@
 	<!-- Enable configuration of transactional behavior based on annotations -->
 	<tx:annotation-driven transaction-manager="transactionManager" />
 
-<context:property-placeholder location="file:///opt/answer/conf/answer_training.properties"/>
+<context:property-placeholder location="file:///opt/answer/conf/answer_training.properties" ignore-unresolvable="true"/>
+<context:property-placeholder location="file:///opt/answer/conf/answer-static-api.properties" ignore-unresolvable="true"/>
+<context:property-placeholder location="file:///opt/answer/conf/answer-file-paths.properties" ignore-unresolvable="true"/>
 
 </beans>
 

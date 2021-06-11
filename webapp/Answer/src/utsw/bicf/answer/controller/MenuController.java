@@ -27,6 +27,7 @@ import utsw.bicf.answer.model.IndividualPermission;
 import utsw.bicf.answer.model.User;
 import utsw.bicf.answer.model.extmapping.CaseHistory;
 import utsw.bicf.answer.model.extmapping.OrderCase;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.PermissionUtils;
 
 @Controller
@@ -44,13 +45,15 @@ public class MenuController {
 	ServletContext servletContext;
 	@Autowired
 	ModelDAO modelDAO;
+	@Autowired
+	MongoProperties mongoProps;
 
 	@RequestMapping("/getCaseItems")
 	@ResponseBody
 	public String getCaseItems(Model model, HttpSession session, @RequestParam Boolean allCases) throws ClientProtocolException, URISyntaxException, IOException {
 		try {
 			//send user to Ben's API to retrieve all active cases
-			RequestUtils utils = new RequestUtils(modelDAO);
+			RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 			User user = ControllerUtil.getSessionUser(session);
 			OrderCase[] cases = utils.getActiveCases();
 			if (cases != null) {
@@ -79,7 +82,7 @@ public class MenuController {
 	public String isUserAssignedToCase(Model model, HttpSession session, @RequestParam String caseId) throws ClientProtocolException, URISyntaxException, IOException {
 		try {
 			//send user to Ben's API to retrieve all active cases
-			RequestUtils utils = new RequestUtils(modelDAO);
+			RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 			User user = ControllerUtil.getSessionUser(session);
 			OrderCase orderCase = utils.getCaseSummary(caseId);
 			AjaxResponse response = new AjaxResponse();
@@ -110,7 +113,7 @@ public class MenuController {
 	public String getCaseReportItems(Model model, HttpSession session, @RequestParam Boolean allReports) throws ClientProtocolException, URISyntaxException, IOException {
 		try {
 			//send user to Ben's API to retrieve all active cases
-			RequestUtils utils = new RequestUtils(modelDAO);
+			RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 			User user = ControllerUtil.getSessionUser(session);
 			OrderCase[] cases = utils.getActiveCases(); //TODO limit to cases with reports
 			if (cases != null) {

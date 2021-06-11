@@ -4,6 +4,8 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import utsw.bicf.answer.model.hybrid.IndicatedTherapyRow;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IndicatedTherapy {
 
@@ -17,6 +19,7 @@ public class IndicatedTherapy {
 	String drugs;
 	boolean drugResistant;
 	String biomarkers;
+	boolean isAddendum;
 	
 	public IndicatedTherapy() {
 	}
@@ -94,6 +97,20 @@ public class IndicatedTherapy {
 //	}
 
 
+	public IndicatedTherapy(IndicatedTherapyRow indicatedTherapy) {
+		this.variant = indicatedTherapy.getVariant();
+		this.level = indicatedTherapy.getLevel();
+		this.indication = indicatedTherapy.getIndication();
+		this.tier = indicatedTherapy.getTier();
+		this.type = indicatedTherapy.getType();
+		this.oid = indicatedTherapy.getOid();
+		this.readonly = indicatedTherapy.isReadonly();
+		this.drugs = indicatedTherapy.getDrugs();
+		this.drugResistant = indicatedTherapy.isDrugResistant();
+		this.biomarkers = indicatedTherapy.getBiomarkers();
+		this.isAddendum = indicatedTherapy.isAddendum();
+	}
+
 	public String getVariant() {
 		return variant;
 	}
@@ -167,6 +184,14 @@ public class IndicatedTherapy {
 
 	public void setBiomarkers(String biomarkers) {
 		this.biomarkers = biomarkers;
+	}
+
+	public boolean isAddendum() {
+		return isAddendum;
+	}
+
+	public void setAddendum(boolean isAddendum) {
+		this.isAddendum = isAddendum;
 	}
 	
 	

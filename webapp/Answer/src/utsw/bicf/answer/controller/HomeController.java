@@ -51,6 +51,7 @@ import utsw.bicf.answer.reporting.parse.EncodingGlyphException;
 import utsw.bicf.answer.security.EmailProperties;
 import utsw.bicf.answer.security.EnsemblProperties;
 import utsw.bicf.answer.security.FileProperties;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.NotificationUtils;
 import utsw.bicf.answer.security.OtherProperties;
 import utsw.bicf.answer.security.PermissionUtils;
@@ -87,6 +88,8 @@ public class HomeController {
 	QcAPIAuthentication qcAPI;
 	@Autowired
 	EnsemblProperties ensemblProps;
+	@Autowired
+	MongoProperties mongoProps;
 	
 //	private static final Logger logger = Logger.getLogger(AOPAspect.class);
 
@@ -107,7 +110,7 @@ public class HomeController {
 //		long end = System.currentTimeMillis();
 //		logger.info("Time to fetch user: " + (end - start) + "ms");
 		//send user to Ben's API to retrieve all active cases
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase[] cases = utils.getActiveCases();
 		List<OrderCase> caseList = new ArrayList<OrderCase>();
 		
@@ -227,7 +230,7 @@ public class HomeController {
 			@RequestParam(defaultValue="false") Boolean receiveACopyOfEmail)
 			throws Exception {
 		
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		
 		OrderCase orderCase = utils.getCaseSummary(caseId);
 		User currentUser = ControllerUtil.getSessionUser(session);
@@ -347,7 +350,7 @@ public class HomeController {
 			@RequestParam String caseId)
 			throws Exception {
 		
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		
 		User currentUser = ControllerUtil.getSessionUser(session);
 		if (currentUser.getIndividualPermission().getAdmin() == null ||
@@ -382,7 +385,7 @@ public class HomeController {
 			@RequestParam String caseId) throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session);
 		AjaxResponse response = new AjaxResponse();
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
@@ -412,7 +415,7 @@ public class HomeController {
 			@RequestParam String caseId) throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session);
 		AjaxResponse response = new AjaxResponse();
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
@@ -423,7 +426,7 @@ public class HomeController {
 				}
 				else {
 					//TODO once ready to send to Epic
-					APIController.sendReportToEpic(caseId, null, null, null, null, null, null, null, null, false, null, response, utils, caseSummary, modelDAO, fileProps, ensemblProps, otherProps);
+					APIController.sendReportToEpic(caseId, response, utils, caseSummary, modelDAO, fileProps, ensemblProps, otherProps);
 					if (response.getSuccess()) {
 						utils.markAsSentToEpic(response, caseId, qcAPI);
 						response.setSuccess(true);
@@ -484,7 +487,7 @@ public class HomeController {
 			response.setMessage("No report provided");
 		}
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		Report report = utils.getReportDetails(reportId);
 		if (report != null) {
 			String possibleDirtyData = report.createObjectJSON();

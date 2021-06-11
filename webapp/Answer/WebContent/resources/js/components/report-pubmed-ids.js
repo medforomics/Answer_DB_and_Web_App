@@ -58,7 +58,12 @@ Vue.component('report-pubmed-ids', {
     <v-btn @click="addNewPubMed">Add Reference</v-btn>
     </v-flex>
     <v-flex xs12 v-for="item in pubmeds" :key="item.pmid">
-        <div><b>{{ item.title }}</b></div>
+        <div>
+        <v-tooltip bottom>
+        <v-icon slot="activator" class="warning--text pr-1" v-if="item.addendum">mdi-alert-decagram</v-icon>
+        <span>This pubmed article is an addendum</span>
+        </v-tooltip>
+        <b>{{ item.title }}</b></div>
         <div>{{ item.authors }}</div>
         <div>{{ item.description }}</div>
         <div>PMID: {{ item.pmid }} 

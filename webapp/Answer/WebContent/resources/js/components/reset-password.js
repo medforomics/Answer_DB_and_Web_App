@@ -8,7 +8,7 @@ Vue.component('reset-password', {
     <v-layout row justify-center>
     <v-flex :class="['text-xs-center', 'elevation-1']" xs12 md6 lg3 xl2>
     <div class="plain-light-background">
-    <img alt="utsw master logo" :src="dataUrlRoot + '/resources/images/utsw-master-logo-lg.png'" width="100%" class="ml-0">
+    <img alt="utsw master logo" :src="dataUrlRoot + '/images/institution-master-logo-lg.png'" width="100%" class="ml-0">
     <img alt="answer logo" :src="dataUrlRoot + '/resources/images/answer-logo-large.png'" width="100%" class="pl-4 pr-4 pb-3"/>     
     <b>An</b>notation <b>S</b>oft<b>w</b>are for <b>E</b>lectronic <b>R</b>eporting
     </div>

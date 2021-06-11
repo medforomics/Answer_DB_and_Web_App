@@ -47,7 +47,7 @@ const AnnotationBrowser = {
             </v-list>
         </v-menu>
         <v-toolbar-title class="ml-0">
-            UTSW Annotations
+            {{ institutionName }} Annotations
         </v-toolbar-title>
        
         <v-spacer></v-spacer>
@@ -623,6 +623,9 @@ const AnnotationBrowser = {
   created: function () {
   },
   computed: {
+    institutionName() {
+      return institutionName;
+    }
   },
   watch: {
     '$route': 'handleRouteChanged',

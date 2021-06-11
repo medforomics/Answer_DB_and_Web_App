@@ -1,7 +1,6 @@
 package utsw.bicf.answer.controller.serialization.vuetify;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import utsw.bicf.answer.model.extmapping.CNVReport;
 
@@ -13,6 +12,31 @@ public class CNVReportSummary extends Summary<CNVReport> {
 	
 	public CNVReportSummary(List<CNVReport> cnvReport, String uniqueIdField) {
 		super(cnvReport, uniqueIdField, null);
+		boolean needsAddendum = false;
+		for (CNVReport c : cnvReport) {
+			if (c.isContainsAddendum()) {
+				needsAddendum = true;
+				break;
+			}
+		}
+		if (needsAddendum) {
+			Header iconFlags = new Header("New", "iconFlags");
+			iconFlags.setIsFlag(true);
+			iconFlags.setSortable(false);
+			iconFlags.setAlign("center");
+			iconFlags.setIsSafe(true);
+			iconFlags.setWidthValue(15);
+			iconFlags.setWidth("15px");
+			headers.add(0, iconFlags);
+			
+			Header annotation = new Header("Addendum", "addedumComment");
+			annotation.setAlign("left");
+			annotation.setWidth("200px");
+			annotation.setIsSafe(false);
+			headers.add(annotation);
+			this.updateHeaderOrder();
+			this.setHiddenStatus();
+		}
 	}
 
 	@Override

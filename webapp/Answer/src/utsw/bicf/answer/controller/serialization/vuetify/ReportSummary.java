@@ -94,6 +94,11 @@ public class ReportSummary {
 	
 	LowCovReportSummary lowCovSummary;
 	
+	String supersededByReportId;
+	String supersedsReportId;
+	
+	String addendumSummary;
+	
 	public ReportSummary() {
 		
 	}
@@ -132,15 +137,21 @@ public class ReportSummary {
 			if (reportDetails.getSnpVariantsStrongClinicalSignificance() != null) {
 				for (GeneVariantAndAnnotation gva : reportDetails.getSnpVariantsStrongClinicalSignificance().values()) {
 					if (gva.getAnnotationsByCategory() != null) {
-						for (String category : gva.getAnnotationsByCategory().keySet()) {
+						Set<String> categories = new HashSet<String>();
+						categories.addAll(gva.getAnnotationsByCategory().keySet());
+						categories.addAll(gva.getAnnotationsAddendedByCategory().keySet());
+						for (String category : categories) {
 							ClinicalSignificance cs = 
 									new ClinicalSignificance(
 											gva.getGeneVariant(), 
 											category, 
 											gva.getAnnotationsByCategory().get(category),
-											gva.isReadonly());
+											gva.isReadonly(),
+											gva.getAnnotationsAddendedByCategory().get(category));
 							strongCS.add(cs);
 						}
+						//possible new categories from addendum
+						
 					}
 				}
 			}
@@ -150,9 +161,11 @@ public class ReportSummary {
 			if (reportDetails.getSnpVariantsPossibleClinicalSignificance() != null) {
 				for (GeneVariantAndAnnotation gva : reportDetails.getSnpVariantsPossibleClinicalSignificance().values()) {
 					if (gva.getAnnotationsByCategory() != null) {
+						Set<String> categories = gva.getAnnotationsByCategory().keySet();
+						categories.addAll(gva.getAnnotationsAddendedByCategory().keySet());
 						for (String category : gva.getAnnotationsByCategory().keySet()) {
 							ClinicalSignificance cs = new ClinicalSignificance(gva.getGeneVariant(), category, gva.getAnnotationsByCategory().get(category),
-									gva.isReadonly());
+									gva.isReadonly(), gva.getAnnotationsAddendedByCategory().get(category));
 							possibleCS.add(cs);
 						}
 					}
@@ -164,9 +177,11 @@ public class ReportSummary {
 			if (reportDetails.getSnpVariantsUnknownClinicalSignificance() != null) {
 				for (GeneVariantAndAnnotation gva : reportDetails.getSnpVariantsUnknownClinicalSignificance().values()) {
 					if (gva.getAnnotationsByCategory() != null) {
+						Set<String> categories = gva.getAnnotationsByCategory().keySet();
+						categories.addAll(gva.getAnnotationsAddendedByCategory().keySet());
 						for (String category : gva.getAnnotationsByCategory().keySet()) {
 							ClinicalSignificance cs = new ClinicalSignificance(gva.getGeneVariant(), category, gva.getAnnotationsByCategory().get(category),
-									gva.isReadonly());
+									gva.isReadonly(), gva.getAnnotationsAddendedByCategory().get(category));
 							unknownCS.add(cs);
 						}
 					}
@@ -203,6 +218,10 @@ public class ReportSummary {
 		}
 		this.pubmeds = reportDetails.getPubmeds();
 		this.tumorPanel = reportDetails.getTumorPanel();
+		
+		this.supersededByReportId = reportDetails.getSupersededByReportId();
+		this.supersedsReportId = reportDetails.getSupersedsReportId();
+		this.addendumSummary = reportDetails.getAddendumSummary();
 	}
 	
 	public String createObjectJSON() throws JsonProcessingException {
@@ -650,5 +669,30 @@ public class ReportSummary {
 	public void setLowCovSummary(LowCovReportSummary lowCovSummary) {
 		this.lowCovSummary = lowCovSummary;
 	}
+
+	public String getSupersededByReportId() {
+		return supersededByReportId;
+	}
+
+	public void setSupersededByReportId(String supersededByReportId) {
+		this.supersededByReportId = supersededByReportId;
+	}
+
+	public String getSupersedsReportId() {
+		return supersedsReportId;
+	}
+
+	public void setSupersedsReportId(String supersedsReportId) {
+		this.supersedsReportId = supersedsReportId;
+	}
+
+	public String getAddendumSummary() {
+		return addendumSummary;
+	}
+
+	public void setAddendumSummary(String addendumSummary) {
+		this.addendumSummary = addendumSummary;
+	}
+
 
 }

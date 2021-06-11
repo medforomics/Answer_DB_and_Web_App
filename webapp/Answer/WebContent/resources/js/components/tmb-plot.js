@@ -206,6 +206,9 @@ Vue.component('tmb-plot', {
     computed: {
         webAppRoot() {
             return webAppRoot;
+        },
+        institutionName() {
+            return institutionName;
         }
     },
     mounted: function () {

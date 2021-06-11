@@ -1,8 +1,8 @@
 package utsw.bicf.answer.controller.serialization.vuetify;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import utsw.bicf.answer.model.extmapping.CNVReport;
 import utsw.bicf.answer.reporting.parse.BiomarkerTrialsRow;
 
 public class ReportClinicalTrialsSummary extends Summary<BiomarkerTrialsRow> {
@@ -13,6 +13,7 @@ public class ReportClinicalTrialsSummary extends Summary<BiomarkerTrialsRow> {
 	
 	public ReportClinicalTrialsSummary(List<BiomarkerTrialsRow> trials, String uniqueIdField) {
 		super(trials, uniqueIdField, null);
+		boolean needsAddendum = false;
 		if (trials != null) {
 			for (BiomarkerTrialsRow row : trials) {
 				if (row.getSelectedBiomarker() != null) {
@@ -21,7 +22,23 @@ public class ReportClinicalTrialsSummary extends Summary<BiomarkerTrialsRow> {
 				else if (row.getRelevantBiomarker() != null) {
 					row.setBiomarker(row.getRelevantBiomarker());
 				}
+				if (row.isAddendum()) {
+					needsAddendum = true;
+					break;
+				}
 			}
+		}
+		if (needsAddendum) {
+			Header iconFlags = new Header("New", "iconFlags");
+			iconFlags.setIsFlag(true);
+			iconFlags.setSortable(false);
+			iconFlags.setAlign("center");
+			iconFlags.setIsSafe(true);
+			iconFlags.setWidthValue(15);
+			iconFlags.setWidth("15px");
+			headers.add(0, iconFlags);
+			this.updateHeaderOrder();
+			this.setHiddenStatus();
 		}
 	}
 

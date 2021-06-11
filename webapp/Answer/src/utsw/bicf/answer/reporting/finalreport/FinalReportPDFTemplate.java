@@ -133,7 +133,13 @@ public class FinalReportPDFTemplate {
 		this.addUTSWImageElement();
 		this.addTitle();
 		this.createPatientTable();
-		this.addNotes();
+		this.addNotes(report.getSummary(), FinalReportTemplateConstants.CASE_SUMMARY_TITLE, 5);
+		if (report.getAddendum() != null && report.getAddendum() && TypeUtils.notNullNotEmpty(report.getAddendumSummary())) {
+			this.addNotes(report.getAddendumSummary(), FinalReportTemplateConstants.CASE_SUMMARY_ADDENDUM_TITLE, 10);
+		}
+		if (report.getAmended() != null && report.getAmended() && TypeUtils.notNullNotEmpty(report.getAmendmentReason())) {
+			this.addNotes(report.getAmendmentReason(), FinalReportTemplateConstants.CASE_SUMMARY_AMENDMENT_TITLE, 10);
+		}
 		this.createNavigationTable();
 		this.createIndicatedTherapiesTable();
 		this.createClinicalTrialsTable();
@@ -388,7 +394,7 @@ public class FinalReportPDFTemplate {
 
 		BaseTable table = new BaseTable(yPos, yPos, 0, tableWidth, FinalReportTemplateConstants.MARGINLEFT,
 				mainDocument, firstPage, false, true);
-		for (String line : FinalReportTemplateConstants.ADDRESS) {
+		for (String line : fileProps.getPdfAddressLines()) {
 			Cell<PDPage> cell = table.createRow(FinalReportTemplateConstants.ADDRESS_FONT_SIZE).createCell(100, line);
 			cell.setFont(FinalReportTemplateConstants.MAIN_FONT_TYPE);
 			cell.setFontSize(FinalReportTemplateConstants.ADDRESS_FONT_SIZE);
@@ -454,38 +460,47 @@ public class FinalReportPDFTemplate {
 		contentStream.close();
 	}
 
-	private void addNotes() throws IOException, EncodingGlyphException {
+	private void addNotes(String content, String title, int paddingBottom) throws IOException, EncodingGlyphException {
 		// Title
 		float tableWidth = pageWidthMinusMargins;
-		PDPage currentPage = this.mainDocument.getPage(0);
+//		PDPage currentPage = this.mainDocument.getPage(0);
+		PDPage currentPage = this.mainDocument.getPage(this.mainDocument.getNumberOfPages() - 1);
 		BaseTable table = new BaseTable(latestYPosition, FinalReportTemplateConstants.MARGINTOP, FinalReportTemplateConstants.MARGINBOTTOM,
 				tableWidth, FinalReportTemplateConstants.MARGINLEFT, mainDocument, currentPage, false, true);
-		Cell<PDPage> cell = table.createRow(FinalReportTemplateConstants.DEFAULT_TEXT_FONT_SIZE).createCell(100, FinalReportTemplateConstants.CASE_SUMMARY_TITLE);
+		Cell<PDPage> cell = table.createRow(FinalReportTemplateConstants.DEFAULT_TEXT_FONT_SIZE).createCell(100, title);
 		cell.setFont(FinalReportTemplateConstants.MAIN_FONT_TYPE);
 		cell.setAlign(HorizontalAlignment.LEFT);
 		cell.setFontSize(FinalReportTemplateConstants.TITLE_TEXT_FONT_SIZE);
 
 		// Content
 		Row<PDPage> row = table.createRow(12);
-		cell = row.createCell(100, report.getSummary() != null ? report.getSummary().replaceAll("\\n", "<br/>") : ""); //otherwise, "No glyph for U+000A in font Calibri"
+		cell = row.createCell(100, content != null ? content.replaceAll("\\n", "<br/>") : ""); //otherwise, "No glyph for U+000A in font Calibri"
 		cell.setFont(FinalReportTemplateConstants.MAIN_FONT_TYPE);
 		cell.setAlign(HorizontalAlignment.LEFT);
 		cell.setFontSize(FinalReportTemplateConstants.SMALLER_TEXT_FONT_SIZE);
 		cell.setTextColor(Color.BLACK);
-		cell.setBottomPadding(10);
-		try {
-			latestYPosition = table.draw();
+		cell.setBottomPadding(paddingBottom);
+		try { //try to see if the summary will fit in what's left of the page. Start at a new page otherwise.
+			float tableHeight = table.getHeaderAndDataHeight();
+			if (latestYPosition - tableHeight < FinalReportTemplateConstants.MARGINBOTTOM) {
+				this.updatePotentialNewPagePosition(table.getRows().size());
+				this.addNotes(content, title, paddingBottom);
+			}
+			else {
+				latestYPosition = table.draw();
+			}
 		} catch (IllegalArgumentException e) {
-			throw new EncodingGlyphException(e.getMessage() + " in Case Summary." );
+			throw new EncodingGlyphException(e.getMessage() + " in " + title + "." );
 		}
 	}
 	
 	private void createPatientTable() throws IOException, EncodingGlyphException {
 		PatientInfo patientDetails = report.getPatientInfo();
 
-		PDPage firstPage = mainDocument.getPage(0);
+//		PDPage firstPage = mainDocument.getPage(0);
+		PDPage currentPage = this.mainDocument.getPage(this.mainDocument.getNumberOfPages() - 1);
 
-		PDPageContentStream contentStream = new PDPageContentStream(mainDocument, firstPage,
+		PDPageContentStream contentStream = new PDPageContentStream(mainDocument, currentPage,
 				PDPageContentStream.AppendMode.APPEND, true);
 		PDStreamUtils.write(contentStream, FinalReportTemplateConstants.PATIENT_DETAILS_TITLE, FinalReportTemplateConstants.MAIN_FONT_TYPE,
 				FinalReportTemplateConstants.TITLE_TEXT_FONT_SIZE,
@@ -499,7 +514,7 @@ public class FinalReportPDFTemplate {
 		float defaultFont = FinalReportTemplateConstants.SMALLEST_TEXT_FONT_SIZE;
 
 		BaseTable leftTable = new BaseTable(latestYPosition, FinalReportTemplateConstants.MARGINTOP, 0, tableWidth,
-				FinalReportTemplateConstants.MARGINLEFT, mainDocument, firstPage, cellBorder, true);
+				FinalReportTemplateConstants.MARGINLEFT, mainDocument, currentPage, cellBorder, true);
 		List<CellItem> leftTableItems = patientDetails.getPatientTables().get(0).getItems();
 //		//add signed by
 //		String signedByName = "Dr. " + signedBy.getFullName();
@@ -518,7 +533,7 @@ public class FinalReportPDFTemplate {
 		float maxTableHeight = leftTable.getHeaderAndDataHeight();
 
 		BaseTable middleTable = new BaseTable(latestYPosition, FinalReportTemplateConstants.MARGINTOP, 0, tableWidth,
-				FinalReportTemplateConstants.MARGINLEFT + leftTable.getWidth(), mainDocument, firstPage, cellBorder,
+				FinalReportTemplateConstants.MARGINLEFT + leftTable.getWidth(), mainDocument, currentPage, cellBorder,
 				true);
 		List<CellItem> middleTableItems = patientDetails.getPatientTables().get(1).getItems();
 		
@@ -535,7 +550,7 @@ public class FinalReportPDFTemplate {
 
 		BaseTable rightTable = new BaseTable(latestYPosition, FinalReportTemplateConstants.MARGINTOP, 0, tableWidth,
 				FinalReportTemplateConstants.MARGINLEFT + leftTable.getWidth() + middleTable.getWidth(),
-				mainDocument, firstPage, cellBorder, true);
+				mainDocument, currentPage, cellBorder, true);
 		List<CellItem> rightTableItems = patientDetails.getPatientTables().get(2).getItems();
 		//add report date
 		String dateModified = report.getDateModified();
@@ -593,7 +608,7 @@ public class FinalReportPDFTemplate {
 		
 		//signature
 		BaseTable signatureTable = new BaseTable(latestYPosition - maxTableHeight, FinalReportTemplateConstants.MARGINTOP, 0, pageWidthMinusMargins * 0.5f,
-				FinalReportTemplateConstants.MARGINLEFT + pageWidthMinusMargins * 0.5f, mainDocument, firstPage, cellBorder, true);
+				FinalReportTemplateConstants.MARGINLEFT + pageWidthMinusMargins * 0.5f, mainDocument, currentPage, cellBorder, true);
 		String signedByName = "Dr. " + signedBy.getFullName();
 		if (report.getFinalized() == null || !report.getFinalized()) {
 			signedByName = "NOT SIGNED";
@@ -625,7 +640,7 @@ public class FinalReportPDFTemplate {
 		
 		// draw borders
 		BaseTable allWidthEmptyTable = new BaseTable(latestYPosition, FinalReportTemplateConstants.MARGINTOP, 0, pageWidthMinusMargins,
-				FinalReportTemplateConstants.MARGINLEFT, mainDocument, firstPage, true, true);
+				FinalReportTemplateConstants.MARGINLEFT, mainDocument, currentPage, true, true);
 		Row<PDPage> row = allWidthEmptyTable.createRow(maxTableHeight);
 		this.applyPatientRecordTableBorderFormatting(row.createCell(100, ""));
 		allWidthEmptyTable.draw();
@@ -891,6 +906,7 @@ public class FinalReportPDFTemplate {
 				cell = row.createCell(18, item.getLevel());
 				this.applyCellFormatting(cell, defaultFont, color);
 				cell = row.createCell(46, item.getIndication());
+				color = this.possibleAddendumColorChange(item.isAddendum(), color, greyBackground);
 				this.applyCellFormatting(cell, defaultFont, color);
 				greyBackground = !greyBackground;
 			}
@@ -968,6 +984,7 @@ public class FinalReportPDFTemplate {
 				if (greyBackground) {
 					color = FinalReportTemplateConstants.BACKGROUND_LIGHT_GRAY;
 				}
+				color = this.possibleAddendumColorChange(item.isAddendum(), color, greyBackground);
 				row = table.createRow(12);
 				Cell<PDPage> cell = row.createCell(30, item.getTitle());
 				this.applyCellFormatting(cell, defaultFont, color);
@@ -1156,7 +1173,9 @@ public class FinalReportPDFTemplate {
 				
 				Cell<PDPage> cell = row.createCell(30, cellContent.toString());
 				this.applyCellFormatting(cell, defaultFont, color);
-				cell = row.createCell(70, this.createAnnotationText(item.getAnnotationsByCategory()));
+				boolean containsAddendum =  item.getAnnotationsAddendedByCategory() != null && !item.getAnnotationsAddendedByCategory().isEmpty();
+				cell = row.createCell(70, this.createAnnotationText(item.getAnnotationsByCategory(), item.getAnnotationsAddendedByCategory()));
+				color = possibleAddendumColorChange(containsAddendum, color, greyBackground);
 				this.applyCellFormatting(cell, defaultFont, color);
 				greyBackground = !greyBackground;
 			}
@@ -1170,12 +1189,23 @@ public class FinalReportPDFTemplate {
 
 	}
 	
-	private String createAnnotationText(Map<String, String> annotationsByCategory) {
+	private String createAnnotationText(Map<String, String> annotationsByCategory, Map<String, String> annotationsAddendedByCategory) {
 		StringBuilder sb = new StringBuilder();
 		List<String> sortedCategories = annotationsByCategory.keySet().stream().sorted().collect(Collectors.toList());
 		for (String cat : sortedCategories) {
-			sb.append("<b>").append(cat).append(":</b> ").append(annotationsByCategory.get(cat));
-			sb.append("<br/>");
+			String text = annotationsByCategory.get(cat);
+			if (TypeUtils.notNullNotEmpty(text)) {
+				sb.append("<b>").append(cat).append(":</b> ").append(annotationsByCategory.get(cat));
+				sb.append("<br/>");
+			}
+		}
+		List<String> sortedAddendedCategories = annotationsAddendedByCategory.keySet().stream().sorted().collect(Collectors.toList());
+		for (String cat : sortedAddendedCategories) {
+			String text = annotationsAddendedByCategory.get(cat);
+			if (TypeUtils.notNullNotEmpty(text)) {
+				sb.append("<b>").append(cat).append(" (Addendum)").append(":</b> ").append(annotationsAddendedByCategory.get(cat));
+				sb.append("<br/>");
+			}
 		}
 		return sb.toString();
 	}
@@ -1207,33 +1237,6 @@ public class FinalReportPDFTemplate {
 			this.applyCellFormatting(cell, defaultFont, Color.WHITE);
 		}
 		else {
-//			boolean greyBackground = false;
-//			int counter = 0;
-//			for (String variant : tableItems.keySet()) {
-//				if (counter % 3 == 0) { //new row every 3 VUS
-//					row = table.createRow(12);
-//				}
-//				counter++;
-//				Color color = Color.WHITE;
-//				if (greyBackground) {
-//					color = FinalReportTemplateConstants.BACKGROUND_LIGHT_GRAY;
-//				}
-//				GeneVariantAndAnnotation item = tableItems.get(variant);
-//				Cell<PDPage> cell = row.createCell(33.33f, item.getGeneVariant());
-//				this.applyCellFormatting(cell, defaultFont, color);
-//				greyBackground = !greyBackground;
-//			}
-//			while(counter % 3 != 0) {
-//				Color color = Color.WHITE;
-//				if (greyBackground) {
-//					color = FinalReportTemplateConstants.BACKGROUND_LIGHT_GRAY;
-//				}
-//				Cell<PDPage> cell = row.createCell(33.33f, "");
-//				this.applyCellFormatting(cell, defaultFont, color);
-//				greyBackground = !greyBackground;
-//				counter++;
-//			}
-			/////TODO
 			//Headers
 			row = table.createRow(12); 
 			table.addHeaderRow(row);
@@ -1272,7 +1275,6 @@ public class FinalReportPDFTemplate {
 				greyBackground = !greyBackground;
 				
 			}
-			/////TODO
 		}
 
 		try {
@@ -1339,7 +1341,14 @@ public class FinalReportPDFTemplate {
 				cell.setAlign(HorizontalAlignment.RIGHT); //align numbers to the right
 				cell = row.createCell(20, item.getCytoband());
 				this.applyCellFormatting(cell, defaultFont, color);
-				cell = row.createCell(45, item.getComment());
+				String comment = item.getComment();
+				boolean containsAddendum = false;
+				if (TypeUtils.notNullNotEmpty(item.getAddedumComment())) {
+					comment += "<br/><b>Addendum: </b>" + item.getAddedumComment();
+					containsAddendum = true;
+				}
+				cell = row.createCell(45, comment);
+				color = possibleAddendumColorChange(containsAddendum, color, greyBackground);
 				this.applyCellFormatting(cell, defaultFont, color);
 				greyBackground = !greyBackground;
 			}
@@ -1350,6 +1359,18 @@ public class FinalReportPDFTemplate {
 		} catch (IllegalArgumentException e) {
 			throw new EncodingGlyphException(e.getMessage() + " in CNV Table." );
 		}
+	}
+
+	private Color possibleAddendumColorChange(boolean containsAddendum, Color color, boolean greyBackground) {
+		if (!containsAddendum) {
+			return color;
+		}
+		if (greyBackground) {
+			//For now, return the same color. It looks weird with 2 different colors
+//			return FinalReportTemplateConstants.BACKGROUND_DARK_ORANGE;
+			return FinalReportTemplateConstants.BACKGROUND_LIGHT_ORANGE;
+		}
+		return FinalReportTemplateConstants.BACKGROUND_LIGHT_ORANGE;
 	}
 
 	private List<FooterColor> getExistingColorsForCurrentPage() {
@@ -1425,7 +1446,14 @@ public class FinalReportPDFTemplate {
 				cell = row.createCell(10, item.getFirstExon());
 				this.applyCellFormatting(cell, defaultFont, color);
 				cell.setAlign(HorizontalAlignment.RIGHT); //align numbers to the right
-				cell = row.createCell(40, item.getComment());
+				String comment = item.getComment();
+				boolean containsAddendum = false;
+				if (TypeUtils.notNullNotEmpty(item.getAddedumComment())) {
+					comment += "<br/><b>Addendum: </b>" + item.getAddedumComment();
+					containsAddendum = true;
+				}
+				cell = row.createCell(40, comment);
+				color = possibleAddendumColorChange(containsAddendum, color, greyBackground);
 				this.applyCellFormatting(cell, defaultFont, color);
 				greyBackground = !greyBackground;
 			}
@@ -1488,6 +1516,7 @@ public class FinalReportPDFTemplate {
 				if (greyBackground) {
 					color = FinalReportTemplateConstants.BACKGROUND_LIGHT_GRAY;
 				}
+				color = this.possibleAddendumColorChange(item.isAddendum(), color, greyBackground);
 				row = table.createRow(12);
 				StringBuilder sb = new StringBuilder();
 //				sb.append("<b>").append(item.getTitle()).append("</b>").append("<br/>"); //can't use tags, it reverts to Helvetica

@@ -1,8 +1,13 @@
 package utsw.bicf.answer.model.extmapping;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import utsw.bicf.answer.controller.serialization.FlagValue;
+import utsw.bicf.answer.controller.serialization.VuetifyIcon;
 import utsw.bicf.answer.reporting.finalreport.FTLReportWithHighestTier;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,6 +25,9 @@ public class TranslocationReport {
 	String lastExon;
 	boolean readonly;
 	String highestAnnotationTier;
+	boolean containsAddendum;
+	String addedumComment;
+	FlagValue iconFlags;
 	
 	public TranslocationReport() {
 		
@@ -38,6 +46,7 @@ public class TranslocationReport {
 		this.lastExon = ftl.getFirstExon();
 		this.comment = text;
 		this.highestAnnotationTier = ftlWithTier.getHighestAnnotationTier();
+		
 	}
 
 	public Boolean getIsAllowed() {
@@ -120,7 +129,37 @@ public class TranslocationReport {
 		this.highestAnnotationTier = highestAnnotationTier;
 	}
 
+	public boolean isContainsAddendum() {
+		return containsAddendum;
+	}
 
+	public void setContainsAddendum(boolean containsAddendum) {
+		this.containsAddendum = containsAddendum;
+	}
+
+	public String getAddedumComment() {
+		return addedumComment;
+	}
+
+	public void setAddedumComment(String addedumComment) {
+		this.addedumComment = addedumComment;
+	}
+
+	public FlagValue getIconFlags() {
+		return iconFlags;
+	}
+
+	public void setIconFlags(FlagValue iconFlags) {
+		this.iconFlags = iconFlags;
+	}
+
+	public void updateAsAddendum(String diff) {
+		this.setAddedumComment(diff);
+		this.setContainsAddendum(true);
+		List<VuetifyIcon> icons = new ArrayList<VuetifyIcon>();
+		icons.add(new VuetifyIcon("mdi-alert-decagram", "warning", "This is an addendum translocation"));
+		iconFlags = new FlagValue(icons);
+	}
 
 
 }

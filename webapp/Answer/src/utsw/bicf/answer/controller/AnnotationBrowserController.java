@@ -31,6 +31,7 @@ import utsw.bicf.answer.model.extmapping.AnnotationSearchResult;
 import utsw.bicf.answer.model.extmapping.Trial;
 import utsw.bicf.answer.model.extmapping.Variant;
 import utsw.bicf.answer.security.FileProperties;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.OtherProperties;
 import utsw.bicf.answer.security.PermissionUtils;
 
@@ -57,6 +58,8 @@ public class AnnotationBrowserController {
 	OtherProperties otherProps;
 	@Autowired
 	LoginDAO loginDAO;
+	@Autowired
+	MongoProperties mongoProps;
 
 	@RequestMapping("/annotationBrowser")
 	public String annotationBrowser(Model model, HttpSession session,
@@ -98,7 +101,7 @@ public class AnnotationBrowserController {
 	@ResponseBody
 	public String getAllClinicalTrials(Model model, HttpSession session) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		AjaxResponse response = new AjaxResponse();
 		response.setIsAllowed(true);
 		List<Annotation> clinicalTrials = utils.getAllClinicalTrials(response);
@@ -130,7 +133,7 @@ public class AnnotationBrowserController {
 	@ResponseBody
 	public String getAllSNPsForGene(Model model, HttpSession session, @RequestParam String geneId) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		AjaxResponse response = new AjaxResponse();
 		response.setIsAllowed(true);
 		List<Annotation> snpAnnotations = utils.getAllSNPsForGene(response, geneId);
@@ -161,7 +164,7 @@ public class AnnotationBrowserController {
 	@ResponseBody
 	public String commitCaseAgnosticAnnotations(Model model, HttpSession session, @RequestBody String annotations) throws Exception {
 		User user = ControllerUtil.getSessionUser(session);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		AjaxResponse response = new AjaxResponse();
 		
 		response.setIsAllowed(true);
@@ -207,7 +210,7 @@ public class AnnotationBrowserController {
 	@ResponseBody
 	public String getVariantsForGene(Model model, HttpSession session, @RequestParam String geneId,
 			@RequestParam String annotationId) throws Exception {
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		AjaxResponse response = new AjaxResponse();
 		response.setIsAllowed(true);
 		List<Variant> variants = utils.getVariantsForGene(response, geneId);

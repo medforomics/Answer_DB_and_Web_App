@@ -16,7 +16,7 @@ const Home = {
       <v-card-text height="50%">
       <v-layout row wrap class="pl-2">
       <v-flex xs12 lg6 v-for="(user, index) in allUsers" :key="index">
-      <v-switch :label="createUserLabel(user)" v-model="usersAssignedToCase[index]" @change="handleAssignToUserValid"></v-switch>
+      <v-switch :label="createUserLabel(user)" v-model="usersAssignedToCase[index]" @change="handleAssignToUserValid"  color="primary"></v-switch>
       </v-flex>
       <v-flex xs>
     </v-flex>
@@ -123,7 +123,7 @@ const Home = {
     <v-card-text>
       <v-layout row wrap class="pl-2">
         <v-flex xs12 lg6 v-for="(group, index) in allGroups" :key="index">
-          <v-switch :label="createGroupLabel(group)" v-model="groupsAssignedToCase[index]"></v-switch>
+          <v-switch :label="createGroupLabel(group)" v-model="groupsAssignedToCase[index]"  color="primary"></v-switch>
         </v-flex>
       </v-layout>
     </v-card-text>

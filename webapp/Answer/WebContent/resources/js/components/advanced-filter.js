@@ -344,12 +344,12 @@ Vue.component('advanced-filter', {
                                 <v-layout row class="pt-3" v-for="filter in getFiltersByType(flagFilters)" :key="filter.fieldName" align-end>
                                     <v-flex xs6>
                                         <v-switch :disabled="disableFiltering" hide-details color="primary" :label="filter.headerTextTrue" v-model="filter.valueTrue"
-                                            @change="updateFilterNeedsReload(true)"
+                                            @change="updateFilterNeedsReload(true)"  
                                             class="no-height mt-0"></v-switch>
                                     </v-flex>
                                     <v-flex xs5>
                                         <v-switch :disabled="disableFiltering" hide-details color="primary" :label="filter.headerTextFalse" v-model="filter.valueFalse"
-                                            @change="updateFilterNeedsReload(true)"
+                                            @change="updateFilterNeedsReload(true)" 
                                             class="no-height mt-0"></v-switch>
                                     </v-flex>
                                     <v-flex>

@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import utsw.bicf.answer.model.extmapping.pubmed.Author;
 import utsw.bicf.answer.model.extmapping.pubmed.PubmedArticle;
 
@@ -15,9 +18,10 @@ public class PubMed {
 	String description;
 	String pmid;
 	String date;
+	boolean addendum;
 	
 	
-	public PubMed() {
+	public PubMed()  {
 	}
 
 
@@ -88,7 +92,34 @@ public class PubMed {
 	public void setDate(String date) {
 		this.date = date;
 	}
+
+
+	public boolean isAddendum() {
+		return addendum;
+	}
+
+
+	public void setAddendum(boolean addendum) {
+		this.addendum = addendum;
+	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		   if (obj == this) { return true; }
+		   if (obj.getClass() != getClass()) {
+		     return false;
+		   }
+		   PubMed rhs = (PubMed) obj;
+		   return new EqualsBuilder()
+		                 .append(pmid, rhs.pmid)
+		                 .isEquals();
+	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder().append(pmid).toHashCode();
+	}
 
 
 }

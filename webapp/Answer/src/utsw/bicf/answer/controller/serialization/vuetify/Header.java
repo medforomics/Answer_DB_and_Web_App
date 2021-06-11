@@ -36,7 +36,7 @@ public class Header {
 	Boolean isSafe = false;
 	boolean isMap;
 	String mapTo; //this the key in the item map (eg. selectionPerAnnotator)
-	
+	Boolean isList = false;
 	
 	public Header() {
 	}
@@ -276,6 +276,14 @@ public class Header {
 
 	public void setMapTo(String mapTo) {
 		this.mapTo = mapTo;
+	}
+
+	public Boolean getIsList() {
+		return isList;
+	}
+
+	public void setIsList(Boolean isList) {
+		this.isList = isList;
 	}
 
 }

@@ -13,6 +13,31 @@ public class ClinicalSignificanceSummary extends Summary<ClinicalSignificance> {
 	
 	public ClinicalSignificanceSummary(List<ClinicalSignificance> clinicalSignificanceList, String uniqueIdField, List<HeaderOrder> headerOrders) {
 		super(clinicalSignificanceList, uniqueIdField, headerOrders);
+		boolean needsAddendum = false;
+		for (ClinicalSignificance cs : clinicalSignificanceList) {
+			if (cs.getAddendumAnnotation() != null) {
+				needsAddendum = true;
+				break;
+			}
+		}
+		if (needsAddendum) {
+			Header iconFlags = new Header("New", "iconFlags");
+			iconFlags.setIsFlag(true);
+			iconFlags.setSortable(false);
+			iconFlags.setAlign("center");
+			iconFlags.setIsSafe(true);
+			iconFlags.setWidthValue(15);
+			iconFlags.setWidth("15px");
+			headers.add(0, iconFlags);
+			
+			Header annotation = new Header("Addendum", "addendumAnnotation");
+			annotation.setAlign("left");
+			annotation.setWidth("200px");
+			annotation.setIsSafe(false);
+			headers.add(annotation);
+			this.updateHeaderOrder();
+			this.setHiddenStatus();
+		}
 	}
 
 	@Override

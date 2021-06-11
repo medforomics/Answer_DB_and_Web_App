@@ -35,6 +35,8 @@ public class FinalReportTemplateConstants {
 	public static final Color BACKGROUND_GRAY = new Color(245, 245, 245);
 //	public static final Color BACKGROUND_LIGHT_GRAY = new Color(250, 250, 250);
 	public static final Color BACKGROUND_LIGHT_GRAY = new Color(245, 245, 245);
+	public static final Color BACKGROUND_LIGHT_ORANGE = new Color(235, 212, 123);
+	public static final Color BACKGROUND_DARK_ORANGE = new Color(235, 195, 52);
 	public static final Color LINK_BLUE = new Color(77, 144, 206);
 	public static final Color LINK_ANSWER_GREEN = new Color(77, 182, 172);
 	public static final LineStyle THINLINE_OUTTER = new LineStyle(new Color(204, 204, 204), 1f);
@@ -64,7 +66,6 @@ public class FinalReportTemplateConstants {
 	public static final LineStyle BORDER_ABOUT_THE_TEST_COLOR = new LineStyle(ABOUT_THE_TEST_COLOR, 1.5f);
 	
 	
-	public static final List<String> ADDRESS = new ArrayList<String>();
 	public static final String TRIAL_URL = "https://clinicaltrials.gov/ct2/show/";
 	public static final String PUBMED_URL = "https://www.ncbi.nlm.nih.gov/pubmed/?term=";
 	public static final String CLINVAR_URL = "https://www.ncbi.nlm.nih.gov/clinvar/variation/";
@@ -91,6 +92,9 @@ public class FinalReportTemplateConstants {
 	public static final String CLINICAL_SIGNIFICANCE_NAV = "VARIANT TIERS";
 	public static final String PUBMED_REFERENCE_TITLE = "PUBMED REFERENCES";
 	public static final String LOW_COV_TITLE = "LOW COVERAGE EXONS";
+	public static final String CASE_SUMMARY_ADDENDUM_TITLE = "ADDENDUM SUMMARY";
+	public static final String CASE_SUMMARY_AMENDMENT_TITLE = "AMENDMENT REASON";
+
 	
 	
 	static {
@@ -102,13 +106,6 @@ public class FinalReportTemplateConstants {
 		TREATMENT_OPTIONS_SUMMARY_HEADERS.add(new Header("FDA approved outside of indication", 20));
 		TREATMENT_OPTIONS_SUMMARY_HEADERS.add(new Header("Clinical Trials", 14));
 		
-		ADDRESS.add("UTSW Clinical NGS Laboratory");
-		ADDRESS.add("Room EB3.302");
-		ADDRESS.add("BioCenter At Southwestern Medical District");
-		ADDRESS.add("2330 Inwood Road");
-		ADDRESS.add("Dallas, TX 75390");
-		ADDRESS.add("CLIA ID 45D0861764");
-		ADDRESS.add("Director: Ravi Sarode, MD");
 	}
 	
 }

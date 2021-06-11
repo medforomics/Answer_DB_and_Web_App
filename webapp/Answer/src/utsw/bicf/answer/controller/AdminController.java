@@ -25,6 +25,7 @@ import utsw.bicf.answer.clarity.api.utils.TypeUtils;
 import utsw.bicf.answer.controller.serialization.AjaxResponse;
 import utsw.bicf.answer.controller.serialization.DataReportGroup;
 import utsw.bicf.answer.controller.serialization.UserCredentials;
+import utsw.bicf.answer.controller.serialization.vuetify.ClinicalTestTableSummary;
 import utsw.bicf.answer.controller.serialization.vuetify.GroupSearchItems;
 import utsw.bicf.answer.controller.serialization.vuetify.GroupTableSummary;
 import utsw.bicf.answer.controller.serialization.vuetify.ReportGroupTableSummary;
@@ -34,12 +35,15 @@ import utsw.bicf.answer.controller.serialization.vuetify.UserTableSummary;
 import utsw.bicf.answer.dao.LoginDAO;
 import utsw.bicf.answer.dao.ModelDAO;
 import utsw.bicf.answer.db.api.utils.AuthUtils;
+import utsw.bicf.answer.model.ClinicalTest;
+import utsw.bicf.answer.model.ClinicalTestDisclaimer;
 import utsw.bicf.answer.model.DevPassword;
 import utsw.bicf.answer.model.GeneToReport;
 import utsw.bicf.answer.model.Group;
 import utsw.bicf.answer.model.IndividualPermission;
 import utsw.bicf.answer.model.ReportGroup;
 import utsw.bicf.answer.model.User;
+import utsw.bicf.answer.model.hybrid.ClinicalTestTableRow;
 import utsw.bicf.answer.model.hybrid.HeaderOrder;
 import utsw.bicf.answer.security.FileProperties;
 import utsw.bicf.answer.security.OtherProperties;
@@ -137,6 +141,19 @@ public class AdminController {
 		User user = ControllerUtil.getSessionUser(session);
 		List<HeaderOrder> headerOrders = Summary.getHeaderOrdersForUserAndTable(modelDAO, user, "Gene Sets");
 		ReportGroupTableSummary summary = new ReportGroupTableSummary(reportGroups, headerOrders, user);
+		
+		return summary.createVuetifyObjectJSON();
+	}
+	
+	@RequestMapping(value = "/getAllClinicalTests")
+	@ResponseBody
+	public String getAllClinicalTests(Model model, HttpSession session)
+			throws Exception {
+
+		List<ClinicalTest> clinicalTests = modelDAO.getAllClinicalTests();
+		User user = ControllerUtil.getSessionUser(session);
+		List<HeaderOrder> headerOrders = Summary.getHeaderOrdersForUserAndTable(modelDAO, user, "Clinical Tests");
+		ClinicalTestTableSummary summary = new ClinicalTestTableSummary(clinicalTests, headerOrders, user);
 		
 		return summary.createVuetifyObjectJSON();
 	}
@@ -358,6 +375,54 @@ public class AdminController {
 			modelDAO.deleteObject(reportGroup);
 			response.setSuccess(true);
 		}
+		return response.createObjectJSON();
+	}
+	
+	@RequestMapping(value = "/saveClinicalTest", method = RequestMethod.POST)
+	@ResponseBody
+	public String saveClinicalTest(Model model, HttpSession session,
+			@RequestParam(defaultValue = "") Integer clinicalTestId, @RequestBody String data)
+			throws Exception {
+		ClinicalTest test = null;
+		AjaxResponse response = new AjaxResponse();
+		response.setIsAllowed(true);
+		ObjectMapper mapper = new ObjectMapper();
+		ClinicalTestTableRow dataPOJO = mapper.readValue(data, ClinicalTestTableRow.class);
+		if (clinicalTestId != null) { //edit group
+			test = modelDAO.getClinicalTestById(clinicalTestId);
+			if (test == null) {
+				response.setSuccess(false);
+				response.setMessage("This clinical test does not exist");
+				return response.createObjectJSON();
+			}
+		}
+		else { //new ttest
+			test = new ClinicalTest();
+		}
+		test.setTestName(dataPOJO.getName().trim());
+		test.setTestLink(dataPOJO.getUrl().trim());
+		modelDAO.saveObject(test);
+		
+		List<ClinicalTestDisclaimer> disclaimers = test.getDisclaimerTexts();
+		if (disclaimers != null && !disclaimers.isEmpty()) {
+			for (ClinicalTestDisclaimer d : disclaimers) {
+				modelDAO.deleteObject(d);
+			}
+			test.setDisclaimerTexts(null);
+			modelDAO.saveObject(test);
+		}
+		List<Object> disclaimersToSave = new ArrayList<Object>();
+		for (String line : dataPOJO.getTextConcat().split("\n")) {
+			if (TypeUtils.notNullNotEmpty(line)) {
+				ClinicalTestDisclaimer d = new ClinicalTestDisclaimer();
+				d.setText(line);
+				d.setClinicalTest(test);
+				disclaimersToSave.add(d);
+			}
+		}
+		modelDAO.saveBatch(disclaimersToSave);
+		response.setSuccess(true);
+		
 		return response.createObjectJSON();
 	}
 }

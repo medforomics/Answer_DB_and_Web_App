@@ -2647,6 +2647,9 @@ const OpenCase2 = {
         },
         variantDetailsUnsaved() {
             return this.$store.getters["variantStore/getNeedSaving"]
+        },
+        institutionName() {
+            return institutionName;
         }
     },
     beforeDestroy() {

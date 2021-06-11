@@ -76,6 +76,7 @@ import utsw.bicf.answer.reporting.parse.MDAReportTemplate;
 import utsw.bicf.answer.security.EmailProperties;
 import utsw.bicf.answer.security.EnsemblProperties;
 import utsw.bicf.answer.security.FileProperties;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.NCBIProperties;
 import utsw.bicf.answer.security.NotificationUtils;
 import utsw.bicf.answer.security.OtherProperties;
@@ -96,6 +97,8 @@ public class APIController {
 	NCBIProperties ncbiProps;
 	@Autowired
 	EnsemblProperties ensemblProps;
+	@Autowired
+	MongoProperties mongoProps;
 	
 
 	@RequestMapping("/parseMDAEmail")
@@ -941,6 +944,7 @@ public class APIController {
 			@RequestParam(required = false) String overrideTestName,
 			@RequestParam(required = false) boolean hidePatientInfo,
 			@RequestParam(required = false) String overrideReportDate,
+			@RequestParam(required = false) String overrideSendingFacilityCode,
 			HttpSession httpSession, @RequestParam(defaultValue = "false") Boolean hl7Only
 			) throws IOException, InterruptedException, URISyntaxException, HL7Exception {
 		httpSession.setAttribute("user", "API User from testEpicReportHL7");
@@ -955,11 +959,13 @@ public class APIController {
 			return response.createObjectJSON();
 		}
 //		User user = ControllerUtil.getSessionUser(httpSession);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		
 		String res = testHL7Report(caseId, overridePatientName, overrideMRN, overrideDOB, overrideGender, overrideOrder,
-				overrideProviderIdName, beakerId, overrideTestName, overrideReportDate, hl7Only,
+				overrideProviderIdName, beakerId, overrideTestName, overrideReportDate, 
+				overrideSendingFacilityCode,
+				hl7Only,
 				utils, caseSummary,
 				modelDAO, fileProps, ensemblProps, otherProps).createObjectJSON();
 		
@@ -969,7 +975,9 @@ public class APIController {
 
 	public static AjaxResponse testHL7Report(String caseId, String overridePatientName, String overrideMRN, String overrideDOB,
 			String overrideGender, String overrideOrder, String overrideProviderIdName,
-			String beakerId, String overrideTestName, String overrideReportDate, Boolean hl7Only,
+			String beakerId, String overrideTestName, String overrideReportDate, 
+			String overrideSendingFacilityCode,
+			Boolean hl7Only,
 			RequestUtils utils, OrderCase caseSummary,
 			ModelDAO modelDAO, FileProperties fileProps, EnsemblProperties ensemblProps,
 			OtherProperties otherProps)
@@ -1032,7 +1040,9 @@ public class APIController {
 			File pdfFile = pdfReport.saveFinalized(true);
 			HL7v251Factory hl7Factory = new HL7v251Factory(reportDetails, caseSummary, utils, pdfFile, ensemblProps, otherProps, 
 					overridePatientName, overrideMRN, overrideDOB, overrideGender, overrideOrder,
-					overrideProviderIdName, beakerId, overrideTestName, overrideReportDate, modelDAO);
+					overrideProviderIdName, beakerId, overrideTestName, overrideReportDate,
+					overrideSendingFacilityCode,
+					modelDAO);
 			String hl7 = hl7Factory.reportToHL7(true);
 //			if (hl7Only) {
 //				return hl7;
@@ -1061,6 +1071,8 @@ public class APIController {
 			@RequestParam(required = false) String overrideTestName,
 			@RequestParam(required = false) boolean hidePatientInfo,
 			@RequestParam(required = false) String overrideReportDate,
+			@RequestParam(required = false) String overridePort,
+			@RequestParam(required = false) String overrideSendingFacilityCode,
 			HttpSession httpSession) throws IOException, InterruptedException, URISyntaxException, HL7Exception {
 		httpSession.setAttribute("user", "API User from sendEpicReportHL7");
 //		long now = System.currentTimeMillis();
@@ -1074,7 +1086,7 @@ public class APIController {
 			return response.createObjectJSON();
 		}
 //		User user = ControllerUtil.getSessionUser(httpSession);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		
 		if (caseSummary == null) {
@@ -1089,16 +1101,26 @@ public class APIController {
 		
 		sendReportToEpic(caseId, overridePatientName, overrideMRN, overrideDOB, overrideGender, overrideOrder,
 				overrideProviderIdName, beakerId, overrideTestName, hidePatientInfo, overrideReportDate,
+				overridePort, overrideSendingFacilityCode,
 				response, utils, caseSummary,
 				modelDAO, fileProps, ensemblProps, otherProps);
 
 		httpSession.invalidate();
 		return response.createObjectJSON();
 	}
+	
+	public static void sendReportToEpic(String caseId,
+			AjaxResponse response, RequestUtils utils, OrderCase caseSummary,
+			ModelDAO modelDAO, FileProperties fileProps, EnsemblProperties ensemblProps,
+			OtherProperties otherProps)
+			throws JsonParseException, JsonMappingException, IOException, URISyntaxException, JsonProcessingException {
+		APIController.sendReportToEpic(caseId, null, null, null, null, null, null, null, null, false, null, null, null, response, utils, caseSummary, modelDAO, fileProps, ensemblProps, otherProps);
+	}
 
 	public static void sendReportToEpic(String caseId, String overridePatientName, String overrideMRN, String overrideDOB,
 			String overrideGender, String overrideOrder, String overrideProviderIdName,
 			String beakerId, String overrideTestName, boolean hidePatientInfo, String overrideReportDate,
+			String overridePort, String overrideSendingFacilityCode,
 			AjaxResponse response, RequestUtils utils, OrderCase caseSummary,
 			ModelDAO modelDAO, FileProperties fileProps, EnsemblProperties ensemblProps,
 			OtherProperties otherProps)
@@ -1146,10 +1168,16 @@ public class APIController {
 					overrideGender, 
 					overrideOrder,
 					overrideProviderIdName, beakerId, overrideTestName,
-					overrideReportDate, modelDAO);
+					overrideReportDate, 
+					overrideSendingFacilityCode,
+					modelDAO);
 			String hl7 = hl7Factory.reportToHL7(false);
 			System.out.println(hl7);
-			socket = new Socket(otherProps.getEpicHl7Hostname(), otherProps.getEpicHl7Port());
+			Integer port = otherProps.getEpicHl7Port();
+			if (TypeUtils.notNullNotEmpty(overridePort)) {
+				port = Integer.parseInt(overridePort);
+			}
+			socket = new Socket(otherProps.getEpicHl7Hostname(), port);
 			output = socket.getOutputStream();
 			writer = new PrintWriter(output, true);
 			writer.println(hl7);

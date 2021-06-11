@@ -1,8 +1,10 @@
 package utsw.bicf.answer.security;
 
 import java.io.File;
-
-import com.jcraft.jsch.Session;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 public class FileProperties {
 
@@ -44,6 +46,8 @@ public class FileProperties {
 	File imageLinksDir;
 	File imageFilesDir;
 	String imageFilesPath;
+	String pdfAddressPath;
+	List<String> pdfAddressLines;
 	
 	public String getMdaFilesPath() {
 		return mdaFilesPath;
@@ -375,6 +379,21 @@ public class FileProperties {
 	}
 	public void setImageFilesDir(File imageFilesDir) {
 		this.imageFilesDir = imageFilesDir;
+	}
+	public String getPdfAddressPath() {
+		return pdfAddressPath;
+	}
+	public void setPdfAddressPath(String pdfAddressPath) {
+		this.pdfAddressPath = pdfAddressPath;
+	}
+	public List<String> getPdfAddressLines() throws IOException {
+		if (pdfAddressLines == null || pdfAddressLines.isEmpty()) {
+			pdfAddressLines = Files.readAllLines(Paths.get(this.pdfAddressPath));
+		}
+		return pdfAddressLines;
+	}
+	public void setPdfAddressLines(List<String> pdfAddressLines) {
+		this.pdfAddressLines = pdfAddressLines;
 	}
 	
 }

@@ -63,6 +63,11 @@ public class Report {
 	Boolean addendum;
 	String dateFinalized;
 	
+	String supersededByReportId;
+	String supersedsReportId;
+	
+	String addendumSummary;
+	
 	List<PubMed> pubmeds = new ArrayList<PubMed>();	
 	
 	String tumorPanel;
@@ -86,7 +91,7 @@ public class Report {
 		this.setSummary(reportSummary.getSummary());
 		//update Indicated Therapies
 		if (reportSummary.getIndicatedTherapySummary() != null) {
-			this.setIndicatedTherapies(reportSummary.getIndicatedTherapySummary().getItems());
+			this.setIndicatedTherapies(reportSummary.getIndicatedTherapySummary().getIndicatedTherapies());
 		}
 		//update CNV
 		if (reportSummary.getCnvSummary() != null) {
@@ -123,6 +128,10 @@ public class Report {
 		this.addendum = reportSummary.getAddendum();
 		this.dateFinalized = reportSummary.getDateFinalized();
 		this.pubmeds = reportSummary.getPubmeds();
+		
+		this.supersededByReportId = reportSummary.getSupersededByReportId();
+		this.supersedsReportId = reportSummary.getSupersedsReportId();
+		this.addendumSummary = reportSummary.getAddendumSummary();
 		
 		this.setLowCoverages(reportSummary.getLowCovSummary().getItems());
 		
@@ -596,6 +605,30 @@ public class Report {
 
 	public void setLowCoverages(List<SampleLowCoverageFromQC> lowCoverages) {
 		this.lowCoverages = lowCoverages;
+	}
+
+	public String getSupersededByReportId() {
+		return supersededByReportId;
+	}
+
+	public void setSupersededByReportId(String supersededByReportId) {
+		this.supersededByReportId = supersededByReportId;
+	}
+
+	public String getSupersedsReportId() {
+		return supersedsReportId;
+	}
+
+	public void setSupersedsReportId(String supersedsReportId) {
+		this.supersedsReportId = supersedsReportId;
+	}
+
+	public String getAddendumSummary() {
+		return addendumSummary;
+	}
+
+	public void setAddendumSummary(String addendumSummary) {
+		this.addendumSummary = addendumSummary;
 	}
 
 }

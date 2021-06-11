@@ -22,7 +22,7 @@ Vue.component('mda-annotation-card', {
                 :disabled="noEdit">
                 <v-icon>mdi-content-copy</v-icon>
                 </v-btn>
-                    <span>Create a UTSW annotation from this card</span>
+                    <span>Create a {{ institutionName }} annotation from this card</span>
                     </v-tooltip>
                 </v-flex>
                 <v-flex xs12>
@@ -82,7 +82,9 @@ Vue.component('mda-annotation-card', {
         }
     },
     computed: {
-
+        institutionName() {
+            return institutionName;
+        }
     },
     created() {
 

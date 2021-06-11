@@ -1,5 +1,12 @@
 package utsw.bicf.answer.model.hybrid;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import utsw.bicf.answer.clarity.api.utils.TypeUtils;
+import utsw.bicf.answer.controller.serialization.FlagValue;
+import utsw.bicf.answer.controller.serialization.VuetifyIcon;
+
 public class ClinicalSignificance {
 	
 	String geneVariant;
@@ -17,18 +24,27 @@ public class ClinicalSignificance {
 	String aberrationType;
 	String csType;
 	boolean additionalRow;
+	String addendumAnnotation;
+	
+	FlagValue iconFlags;
 	
 	
 	
 	public ClinicalSignificance() {
 	}
-	public ClinicalSignificance(String geneVariant, String category, String annotation, boolean readonly) {
+	public ClinicalSignificance(String geneVariant, String category, String annotation, boolean readonly, String addendumAnnotation) {
 		super();
 		this.geneVariant = geneVariant;
 		this.geneVariantAsKey = geneVariant.replaceAll("\\.", "");
 		this.category = category;
 		this.annotation = annotation;
 		this.readonly = readonly;
+		this.addendumAnnotation = addendumAnnotation;
+		if (TypeUtils.notNullNotEmpty(this.addendumAnnotation)) {
+			List<VuetifyIcon> icons = new ArrayList<VuetifyIcon>();
+			icons.add(new VuetifyIcon("mdi-alert-decagram", "warning", "This annotation contains an addendum"));
+			iconFlags = new FlagValue(icons);
+		}
 	}
 	public String getGeneVariant() {
 		return geneVariant;
@@ -107,6 +123,18 @@ public class ClinicalSignificance {
 	}
 	public void setCsType(String csType) {
 		this.csType = csType;
+	}
+	public String getAddendumAnnotation() {
+		return addendumAnnotation;
+	}
+	public void setAddendumAnnotation(String addendumAnnotation) {
+		this.addendumAnnotation = addendumAnnotation;
+	}
+	public FlagValue getIconFlags() {
+		return iconFlags;
+	}
+	public void setIconFlags(FlagValue iconFlags) {
+		this.iconFlags = iconFlags;
 	}
 
 }

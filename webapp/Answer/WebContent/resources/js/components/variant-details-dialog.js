@@ -258,8 +258,8 @@ Vue.component('variant-details-dialog', {
                                                         <v-icon v-else>mdi-message-bulleted-off</v-icon>
                                                     </v-list-tile-avatar>
                                                     <v-list-tile-content>
-                                                        <v-list-tile-title v-if="utswAnnotationsExists()">UTSW Annotations</v-list-tile-title>
-                                                        <v-list-tile-title v-else>No UTSW Annotations</v-list-tile-title>
+                                                        <v-list-tile-title v-if="utswAnnotationsExists()">{{ institutionName}} Annotations</v-list-tile-title>
+                                                        <v-list-tile-title v-else>No {{ institutionName}} Annotations</v-list-tile-title>
                                                     </v-list-tile-content>
                                                 </v-list-tile>
     
@@ -421,8 +421,8 @@ Vue.component('variant-details-dialog', {
                             <v-icon v-if="utswAnnotationsExists()">mdi-message-bulleted</v-icon>
                             <v-icon v-else>mdi-message-bulleted-off</v-icon>
                         </v-btn>
-                        <span v-if="utswAnnotationsExists()">Show/Hide UTSW Annotations</span>
-                        <span v-else>No UTSW Annotations</span>
+                        <span v-if="utswAnnotationsExists()">Show/Hide {{ institutionName }} Annotations</span>
+                        <span v-else>No {{ institutionName }} Annotations</span>
                     </v-tooltip>
                     <v-menu origin="center center" transition="slide-y-transition" bottom open-on-hover offset-y v-if="isSNP()">
                     <v-btn icon flat slot="activator">IGV
@@ -588,12 +588,12 @@ Vue.component('variant-details-dialog', {
                                                             <v-icon>mdi-message-bulleted</v-icon>
                                                         </v-list-tile-avatar>
                                                         <v-list-tile-content>
-                                                            <v-list-tile-title>Close UTSW Annotations</v-list-tile-title>
+                                                            <v-list-tile-title>Close {{ institutionName }} Annotations</v-list-tile-title>
                                                         </v-list-tile-content>
                                                     </v-list-tile>
                                                 </v-list>
                                     </v-menu>
-                                            <v-toolbar-title class="ml-0">UTSW Annotations</v-toolbar-title>
+                                            <v-toolbar-title class="ml-0">{{ institutionName }} Annotations</v-toolbar-title>
                                             <v-spacer></v-spacer>
                                             <v-tooltip bottom>
                                                 <v-btn flat icon @click="searchAnnotationsVisible = !searchAnnotationsVisible" slot="activator" :color="searchAnnotationsVisible ? 'amber accent-2' : ''">
@@ -2518,7 +2518,7 @@ Vue.component('variant-details-dialog', {
             var newAnnotation = JSON.parse(annotationString);
             newAnnotation._id = null;
             newAnnotation.text = "(copy) " + annotation.text;
-            newAnnotation.origin = "UTSW";
+            newAnnotation.origin = this.institutionName;
             newAnnotation.createdDate = null;
             newAnnotation.modifiedDate = null;
             newAnnotation.userId = this.userId;
@@ -2784,6 +2784,9 @@ Vue.component('variant-details-dialog', {
         
     },
     computed: {
+        institutionName() {
+            return institutionName;
+        }
     },
     created() {
         bus.$on('create-new-cnv', this.openAddCNVDialog);

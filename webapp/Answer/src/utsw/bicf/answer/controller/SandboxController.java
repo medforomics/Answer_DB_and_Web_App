@@ -36,6 +36,7 @@ import utsw.bicf.answer.model.extmapping.CNVPlotData;
 import utsw.bicf.answer.model.extmapping.CNVPlotDataRaw;
 import utsw.bicf.answer.security.EmailProperties;
 import utsw.bicf.answer.security.FileProperties;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.OtherProperties;
 import utsw.bicf.answer.security.PermissionUtils;
 import utsw.bicf.answer.security.QcAPIAuthentication;
@@ -68,6 +69,8 @@ public class SandboxController {
 	OtherProperties otherProps;
 	@Autowired
 	LoginDAO loginDAO;
+	@Autowired
+	MongoProperties mongoProps;
 
 
 	@RequestMapping("/sandbox")
@@ -100,7 +103,7 @@ public class SandboxController {
 	public String getCNVChartDataStatic(Model model, HttpSession session, @RequestParam(defaultValue="all", required=false) String chrom,
 			@RequestParam(defaultValue="", required=false) String genesParam) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		if (chrom.equals("all")) {
 			chrom = null;
 			genesParam = "";//don't color genes in this view

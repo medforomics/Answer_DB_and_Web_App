@@ -96,6 +96,7 @@ public class HL7v251Factory {
 	String overrideTestName;
 	String overrideReportDate;
 	EnsemblRequestUtils ensemblUtils;
+	String overrideSendingFacilityCode;
 	
 	
 	
@@ -106,7 +107,7 @@ public class HL7v251Factory {
 			String overrideProviderIdName,
 			String beakerId, String overrideTestName,
 			String overrideReportDate, 
-			ModelDAO modelDAO) {
+			String overrideSendingFacilityCode, ModelDAO modelDAO) {
 		super();
 		this.report = report;
 		this.caseSummary = caseSummary;
@@ -127,6 +128,7 @@ public class HL7v251Factory {
 		this.overrideReportDate = overrideReportDate;
 		this.ensemblUtils = new EnsemblRequestUtils(ensemblProps, otherProps);
 		this.modelDAO = modelDAO;
+		this.overrideSendingFacilityCode = overrideSendingFacilityCode;
 	}
 	
 	public String reportToHL7(boolean humanReadable) throws HL7Exception, IOException, URISyntaxException {
@@ -159,7 +161,11 @@ public class HL7v251Factory {
 		// Populate the MSH Segment
 		MSH mshSegment = oru.getMSH();
 		mshSegment.getSendingApplication().getNamespaceID().setValue(UTSWProps.SENDING_APPLICATION);
-		mshSegment.getSendingFacility().getNamespaceID().setValue(UTSWProps.SENDING_FACILITY);
+		String sendingFacility = UTSWProps.SENDING_FACILITY;
+		if (TypeUtils.notNullNotEmpty(this.overrideSendingFacilityCode)) {
+			sendingFacility = this.overrideSendingFacilityCode;
+		}
+		mshSegment.getSendingFacility().getNamespaceID().setValue(sendingFacility);
 		mshSegment.getReceivingApplication().getNamespaceID().setValue(UTSWProps.RECEIVING_APPLICATION);
 		mshSegment.getReceivingFacility().getNamespaceID().setValue(UTSWProps.RECEIVING_FACILITY);
 		mshSegment.getDateTimeOfMessage().getTime().setValue(TypeUtils.hl7DateTimeFormatter.format(LocalDateTime.now()));

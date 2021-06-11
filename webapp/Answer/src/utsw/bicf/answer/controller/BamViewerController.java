@@ -39,6 +39,7 @@ import utsw.bicf.answer.model.extmapping.CloudBams;
 import utsw.bicf.answer.model.extmapping.OrderCase;
 import utsw.bicf.answer.security.AzureOAuth;
 import utsw.bicf.answer.security.FileProperties;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.OtherProperties;
 import utsw.bicf.answer.security.PermissionUtils;
 
@@ -61,6 +62,8 @@ public class BamViewerController {
 	@Autowired
 	OtherProperties otherProps;
 	@Autowired
+	MongoProperties mongoProps;
+	@Autowired
 	AzureOAuth azureProps;
 
 	@RequestMapping("/bamViewer")
@@ -71,7 +74,7 @@ public class BamViewerController {
 		model.addAttribute("caseId", caseId);
 		ControllerUtil.setGlobalVariables(model, fileProps, otherProps);
 		User user = ControllerUtil.getSessionUser(session);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (user == null) {
 			return ControllerUtil.initializeModelError(model, servletContext);
@@ -164,7 +167,7 @@ public class BamViewerController {
 	public String downloadLocalIGVFile(Model model, HttpSession session, HttpServletRequest request, @RequestParam String caseId,
 			@RequestParam String locus, @RequestParam String type) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		AjaxResponse response = new AjaxResponse();
 		if (caseSummary == null) {

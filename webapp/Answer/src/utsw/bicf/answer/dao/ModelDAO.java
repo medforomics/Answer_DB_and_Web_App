@@ -22,7 +22,6 @@ import org.springframework.stereotype.Repository;
 import utsw.bicf.answer.clarity.api.utils.TypeUtils;
 import utsw.bicf.answer.controller.serialization.plotly.Trace;
 import utsw.bicf.answer.db.api.utils.LookupUtils;
-import utsw.bicf.answer.model.AnswerDBCredentials;
 import utsw.bicf.answer.model.ClinicalTest;
 import utsw.bicf.answer.model.CosmicFusion;
 import utsw.bicf.answer.model.DevPassword;
@@ -225,14 +224,6 @@ public class ModelDAO {
 		return theToken;
 	}
 
-	@Transactional
-	public AnswerDBCredentials getAnswerDBCredentials() {
-		Session session = sessionFactory.getCurrentSession();
-		String hql = "from AnswerDBCredentials";
-		AnswerDBCredentials db = session.createQuery(hql, AnswerDBCredentials.class).uniqueResult();
-		return db;
-	}
-	
 	@Transactional
 	public LookupVersion getLookupVersion(String databaseName) {
 		Session session = sessionFactory.getCurrentSession();
@@ -661,7 +652,7 @@ public class ModelDAO {
 				.append(" group by cancer_type ");
 		Query<GenericBarPlotData> query = session.createNativeQuery(sb.toString())
 				.setParameter("hugoSymbol", hugoSymbol)
-				.setParameter("cancers", cancers);
+				.setParameterList("cancers", cancers);
 		
 		return query.setResultTransformer(new ResultTransformer() {
 			private static final long serialVersionUID = 1L;
@@ -1346,5 +1337,21 @@ public class ModelDAO {
 			return results.get(0);
 		}
 		return null;
+	}
+	
+	@Transactional
+	public List<ClinicalTest> getAllClinicalTests() {
+		Session session = sessionFactory.getCurrentSession();
+		String hql = "from ClinicalTest";
+		return session.createQuery(hql, ClinicalTest.class).list();
+	}
+
+	@Transactional
+	public ClinicalTest getClinicalTestById(Integer testId) {
+		Session session = sessionFactory.getCurrentSession();
+		String hql = "from ClinicalTest where clinical_test_id = :testId";
+		return session.createQuery(hql, ClinicalTest.class)
+		.setParameter("testId", testId)
+		.uniqueResult();
 	}
 }

@@ -36,6 +36,8 @@ Authors Dr. B. Cantarel, Dr J. Gagan, Benjamin Wakeland and Guillaume Jimenez
 
         var version = "${version}";
 
+        var institutionName = "${institutionName}";
+
 </script>
 
 <link rel="stylesheet" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600,700">

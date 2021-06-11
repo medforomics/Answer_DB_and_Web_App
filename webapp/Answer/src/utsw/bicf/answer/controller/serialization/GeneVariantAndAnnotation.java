@@ -1,8 +1,9 @@
 package utsw.bicf.answer.controller.serialization;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;import com.fasterxml.jackson.databind.ser.std.NumberSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import utsw.bicf.answer.model.extmapping.CNV;
 import utsw.bicf.answer.model.extmapping.Variant;
@@ -27,6 +28,8 @@ public class GeneVariantAndAnnotation {
 	String ref;
 	String alt;
 	String clinvarId;
+	Map<String, String> annotationsAddendedByCategory = new HashMap<String, String>();
+	boolean containsAddendum;
 	
 	public GeneVariantAndAnnotation() {
 	}
@@ -192,6 +195,22 @@ public class GeneVariantAndAnnotation {
 
 	public void setClinvarId(String clinvarId) {
 		this.clinvarId = clinvarId;
+	}
+
+	public Map<String, String> getAnnotationsAddendedByCategory() {
+		return annotationsAddendedByCategory;
+	}
+
+	public void setAnnotationsAddendedByCategory(Map<String, String> annotationsAddendedByCategory) {
+		this.annotationsAddendedByCategory = annotationsAddendedByCategory;
+	}
+
+	public boolean isContainsAddendum() {
+		return containsAddendum;
+	}
+
+	public void setContainsAddendum(boolean containsAddendum) {
+		this.containsAddendum = containsAddendum;
 	}
 
 	

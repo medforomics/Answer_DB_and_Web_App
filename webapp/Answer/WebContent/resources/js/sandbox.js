@@ -97,6 +97,9 @@ const Sandbox = {
         webAppRoot() {
             return webAppRoot;
         },
+        institutionName() {
+            return institutionName;
+        }
     },
     destroyed: function () {
     },

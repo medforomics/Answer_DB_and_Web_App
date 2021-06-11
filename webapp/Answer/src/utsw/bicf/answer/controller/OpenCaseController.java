@@ -91,7 +91,6 @@ import utsw.bicf.answer.model.extmapping.CaseAnnotation;
 import utsw.bicf.answer.model.extmapping.CommitAnnotationResponse;
 import utsw.bicf.answer.model.extmapping.MongoDBId;
 import utsw.bicf.answer.model.extmapping.OrderCase;
-import utsw.bicf.answer.model.extmapping.TMBData;
 import utsw.bicf.answer.model.extmapping.Translocation;
 import utsw.bicf.answer.model.extmapping.Trial;
 import utsw.bicf.answer.model.extmapping.VCFAnnotation;
@@ -112,6 +111,7 @@ import utsw.bicf.answer.model.hybrid.VirusRow;
 import utsw.bicf.answer.reporting.parse.ExportSelectedVariants;
 import utsw.bicf.answer.security.EmailProperties;
 import utsw.bicf.answer.security.FileProperties;
+import utsw.bicf.answer.security.MongoProperties;
 import utsw.bicf.answer.security.NotificationUtils;
 import utsw.bicf.answer.security.OtherProperties;
 import utsw.bicf.answer.security.PermissionUtils;
@@ -229,6 +229,8 @@ public class OpenCaseController {
 	OtherProperties otherProps;
 	@Autowired
 	LoginDAO loginDAO;
+	@Autowired
+	MongoProperties mongoProps;
 
 
 	@RequestMapping("/openCase/{caseId}")
@@ -243,7 +245,7 @@ public class OpenCaseController {
 		User user = ControllerUtil.getSessionUser(session);
 		model.addAttribute("urlRedirect", url);
 		ControllerUtil.setGlobalVariables(model, fileProps, otherProps);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseSummary)) {
 			return ControllerUtil.initializeModelNotAllowed(model, servletContext);
@@ -267,7 +269,7 @@ public class OpenCaseController {
 				+ "%26variantId=" + variantId + "%26variantType=" + variantType
 				+ "%26edit=" + edit;
 		User user = ControllerUtil.getSessionUser(session);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		model.addAttribute("urlRedirect", url);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseSummary)) {
@@ -286,7 +288,7 @@ public class OpenCaseController {
 		long now = System.currentTimeMillis();
 		User user = ControllerUtil.getSessionUser(session); // to verify that the user is assigned to the case
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase detailedCase = utils.getCaseDetails(caseId, filters);
 		long afterRequest = System.currentTimeMillis();
 		System.out.println("After request " + (afterRequest - now) + "ms");
@@ -346,7 +348,7 @@ public class OpenCaseController {
 
 		User user = ControllerUtil.getSessionUser(session); // to verify that the user is assigned to the case
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseSummary)) {
 			return ControllerUtil.returnFailedGroupCheck();
@@ -377,7 +379,7 @@ public class OpenCaseController {
 			@RequestParam String caseId, @RequestParam(defaultValue="false") Boolean skipSnackBar) throws Exception {
 
 		User user = ControllerUtil.getSessionUser(session); // to verify that the user is assigned to the case
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseSummary)) {
 			return ControllerUtil.returnFailedGroupCheck();
@@ -670,7 +672,7 @@ public class OpenCaseController {
 	public String getVariantDetails(Model model, HttpSession session, @RequestParam String variantId, @RequestParam String caseId) throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseSummary)) {
@@ -738,7 +740,7 @@ public class OpenCaseController {
 	public String getCNVDetails(Model model, HttpSession session, @RequestParam String variantId, @RequestParam String caseId) throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseSummary)) {
@@ -792,7 +794,7 @@ public class OpenCaseController {
 	public String getCNVChromList(Model model, HttpSession session, @RequestParam String caseId) throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		Set<String> selectItems = utils.getCNVChromomosomes(caseId);
 		if (selectItems != null) {
 			CNVChromosomeItems items = new CNVChromosomeItems(selectItems);
@@ -826,7 +828,7 @@ public class OpenCaseController {
 			throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseSummary)) {
@@ -880,7 +882,7 @@ public class OpenCaseController {
 	public String saveVariantSelection(Model model, HttpSession session, @RequestBody String data,
 			@RequestParam String caseId, @RequestParam(defaultValue="false") Boolean closeAfter,
 			 @RequestParam(defaultValue="false") Boolean skipSnackBar) throws Exception {
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		AjaxResponse response = new AjaxResponse();
 		response.setSkipSnackBar(skipSnackBar);
 		response.setUiProceed(closeAfter);
@@ -919,7 +921,7 @@ public class OpenCaseController {
 			@RequestParam String caseId, @RequestParam String geneId, @RequestParam String variantId,
 			@RequestParam(defaultValue="false") Boolean skipAutoSelect) throws Exception {
 		User user = ControllerUtil.getSessionUser(session);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		AjaxResponse response = new AjaxResponse();
 		if (!caseId.equals("")) { //for annotations within a case
@@ -1082,7 +1084,7 @@ public class OpenCaseController {
 			@RequestParam String variantType, @RequestParam String variantId,
 			@RequestParam String caseId) throws Exception {
 		User user = ControllerUtil.getSessionUser(session);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		AjaxResponse response = new AjaxResponse();
 		if (!caseId.equals("")) { //for annotations within a case
@@ -1242,7 +1244,7 @@ public class OpenCaseController {
 		// response.setSuccess(false);
 		ObjectMapper mapper = new ObjectMapper();
 		List<String> selectedVariantIds = mapper.readValue(data, DataFilterList.class).getSelectedSNPVariantIds();
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase detailedCase = utils.getCaseDetails(caseId, data);
 		List<Variant> selectedVariants = detailedCase.getVariants().stream()
 				.filter(v -> selectedVariantIds.contains(v.getMongoDBId().getOid())).collect(Collectors.toList());
@@ -1281,7 +1283,7 @@ public class OpenCaseController {
 		// response.setIsAllowed(false);
 		// response.setSuccess(false);
 		ObjectMapper mapper = new ObjectMapper();
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase detailedCase = utils.getCaseDetails(caseId, data);
 		AjaxResponse response = new AjaxResponse();
 		response.setIsAllowed(false);
@@ -1324,7 +1326,7 @@ public class OpenCaseController {
 		response.setIsAllowed(false);
 		response.setSuccess(false);
 		response.setSkipSnackBar(skipSnackBar);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode nodeData = mapper.readTree(data);
 		Object variant = null;
@@ -1378,7 +1380,7 @@ public class OpenCaseController {
 		response.setSuccess(false);
 		response.setSkipSnackBar(skipSnackBar);
 		response.setUiProceed(false);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode nodeData = mapper.readTree(data);
 		Map<String, List<Variant>> snpsByCaseId = new HashMap<String, List<Variant>>();
@@ -1505,7 +1507,7 @@ public class OpenCaseController {
 		response.setSuccess(false);
 		response.setSkipSnackBar(skipSnackBar);
 		response.setUiProceed(false);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode nodeData = mapper.readTree(data);
 		
@@ -1588,7 +1590,7 @@ public class OpenCaseController {
 		response.setSuccess(false);
 		response.setSkipSnackBar(skipSnackBar);
 		response.setUiProceed(false);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode nodeData = mapper.readTree(data);
 		Map<String, List<Variant>> snpsByCaseId = new HashMap<String, List<Variant>>();
@@ -1712,7 +1714,7 @@ public class OpenCaseController {
 	public String getPatientDetails(Model model, HttpSession session, @RequestParam String caseId) throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (caseSummary != null) {
@@ -1741,7 +1743,7 @@ public class OpenCaseController {
 			@RequestParam(defaultValue="false") Boolean skipSnackBar) throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session);
 		boolean isAssigned = ControllerUtil.isUserAssignedToCase(utils, caseId, user);
 		AjaxResponse response = new AjaxResponse();
@@ -1816,7 +1818,7 @@ public class OpenCaseController {
 	public String readyForReview(Model model, HttpSession session, @RequestParam String caseId) throws Exception {
 		
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User currentUser = ControllerUtil.getSessionUser(session);
 		boolean isAssigned = ControllerUtil.isUserAssignedToCase(utils, caseId, currentUser);
 		AjaxResponse response = new AjaxResponse();
@@ -1885,7 +1887,7 @@ public class OpenCaseController {
 	public String readyForReport(Model model, HttpSession session, @RequestParam String caseId) throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User currentUser = ControllerUtil.getSessionUser(session);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		boolean isAssigned = ControllerUtil.isUserAssignedToCase(caseSummary, currentUser);
@@ -1922,7 +1924,7 @@ public class OpenCaseController {
 	public String getCNVChartData(Model model, HttpSession session, @RequestParam String caseId, @RequestParam(defaultValue="all", required=false) String chrom,
 			@RequestParam(defaultValue="", required=false) String genesParam) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		if (chrom.equals("all")) {
 			chrom = null;
 			genesParam = "";//don't color genes in this view
@@ -1987,7 +1989,7 @@ public class OpenCaseController {
 	public String saveCNV(Model model, HttpSession session, @RequestParam String caseId,
 			@RequestBody String data) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session); // to verify that the user is assigned to the case
 		boolean isAssigned = ControllerUtil.isUserAssignedToCase(utils, caseId, user);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
@@ -2018,7 +2020,7 @@ public class OpenCaseController {
 	public String saveFusion(Model model, HttpSession session, @RequestParam String caseId,
 			@RequestBody String data) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session); // to verify that the user is assigned to the case
 		boolean isAssigned = ControllerUtil.isUserAssignedToCase(utils, caseId, user);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
@@ -2051,7 +2053,7 @@ public class OpenCaseController {
 			throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		AjaxResponse response = new AjaxResponse();
 		Trial trial = utils.getNCTData(response, nctId);
 		if (trial != null) {
@@ -2070,7 +2072,7 @@ public class OpenCaseController {
 			throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		AjaxResponse response = new AjaxResponse();
 		utils.setDefaultTranscript(response, data, variantId);
 		return response.createObjectJSON();
@@ -2132,7 +2134,7 @@ public class OpenCaseController {
 	public String createITD(Model model, HttpSession session, @RequestParam String caseId,
 			@RequestParam String gene) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session); // to verify that the user is assigned to the case
 		boolean isAssigned = ControllerUtil.isUserAssignedToCase(utils, caseId, user);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
@@ -2199,7 +2201,7 @@ public class OpenCaseController {
 	public String getSelectedVariantIds(Model model, HttpSession session, @RequestBody String data, @RequestParam String caseId,  @RequestParam(defaultValue="false") Boolean currentUserOnly) throws Exception {
 
 		User user = ControllerUtil.getSessionUser(session);
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (caseSummary.getCaseOwner() == null) {
 			caseSummary.setCaseOwner("-1");
@@ -2290,7 +2292,7 @@ public class OpenCaseController {
 			@RequestParam(defaultValue="false", required=false) Boolean showOtherPlots,
 			@RequestParam(defaultValue="false", required=false) Boolean useLog2) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		WhiskerData data = new WhiskerData(); 
 //		
 //		//create fake data here for testing
@@ -2348,7 +2350,7 @@ public class OpenCaseController {
 			@RequestParam(defaultValue="false", required=false) Boolean showOtherPlots,
 			@RequestParam(defaultValue="false", required=false) Boolean useLog2) throws Exception {
 
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		WhiskerData data = new WhiskerData(); 
 //		
 //		//create fake data here for testing
@@ -2407,7 +2409,7 @@ public class OpenCaseController {
 			throws Exception {
 
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		User user = ControllerUtil.getSessionUser(session);
 		OrderCase caseSummary = utils.getCaseSummary(caseId);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseSummary)) {
@@ -2462,7 +2464,7 @@ public class OpenCaseController {
 //	@ResponseBody
 //	public String getMutationSignatureTableForCase(Model model, HttpSession session, @RequestParam String caseId) throws Exception {
 //
-//		RequestUtils utils = new RequestUtils(modelDAO);
+//		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 //		AjaxResponse ajaxResponse = new AjaxResponse();
 //		ajaxResponse.setIsAllowed(true);
 //		ajaxResponse.setSuccess(true);
@@ -2483,7 +2485,7 @@ public class OpenCaseController {
 
 		User user = ControllerUtil.getSessionUser(session); // to verify that the user is assigned to the case
 		// send user to Ben's API
-		RequestUtils utils = new RequestUtils(modelDAO);
+		RequestUtils utils = new RequestUtils(modelDAO, mongoProps);
 		OrderCase caseDetails = utils.getCaseDetails(caseId, null);
 		if (!ControllerUtil.areUserAndCaseInSameGroup(user, caseDetails)) {
 			return ControllerUtil.returnFailedGroupCheck();
