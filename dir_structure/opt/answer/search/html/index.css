@@ -1,0 +1,8 @@
+.selectable {
+    user-select: text;
+    cursor: text;
+}
+
+.toolbar-image {
+    height: inherit;
+}
