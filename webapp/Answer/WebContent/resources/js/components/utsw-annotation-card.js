@@ -1,16 +1,15 @@
-
-
-Vue.component('utsw-annotation-card', {
-    props: {
-        "annotation": Object,
-        "variantType": {default: "snp", type: String},
-        noEdit: { default: true, type: Boolean },
-        caseAgnostic: { default: false, type: Boolean },
-        currentUserId: { default: null, type: Number},
-        canCopy: { default: false, type: Boolean },
-        canHide: { default: false, type: Boolean }
-    },
-    template: /*html*/`<div>
+Vue.component("utsw-annotation-card", {
+  props: {
+    annotation: Object,
+    variantType: { default: "snp", type: String },
+    noEdit: { default: true, type: Boolean },
+    caseAgnostic: { default: false, type: Boolean },
+    currentUserId: { default: null, type: Number },
+    canCopy: { default: false, type: Boolean },
+    canHide: { default: false, type: Boolean },
+    savingNeeded: { default: false, type: Boolean },
+  },
+  template: /*html*/ `<div>
     <v-card>
     <v-card-text :class="['subheading', !annotation.canEdit && caseAgnostic ? 'blue-grey lighten-3' : '', aboutToHide ? 'alpha-54' : '']">
         <v-container grid-list-md fluid class="white" pl-2 pr-2 pt-2 pb-2>
@@ -38,10 +37,11 @@ Vue.component('utsw-annotation-card', {
                 <v-flex xs1 class="pt-0" v-if="canHide">
                 <v-tooltip bottom>
                 <v-btn color="primary" slot="activator" @click="aboutToHide = true" flat icon
-                :disabled="noEdit || aboutToHide" class="mr-0">
+                :disabled="noEdit || aboutToHide || annotation.isSelected || savingNeeded" class="mr-0">
                 <v-icon>mdi-delete</v-icon>
                 </v-btn>
-                    <span>Delete this annotation permanently, for all users</span>
+                    <span v-if="annotation.isSelected">Unselect and save this card first</span>
+                    <span v-else>Delete this annotation permanently, for all users</span>
                     </v-tooltip>
                 </v-flex>
                 <v-flex xs1 class="pt-0">
@@ -157,75 +157,69 @@ Vue.component('utsw-annotation-card', {
 </v-card>
 
 </div>`,
-    data() {
-        return {
-            aboutToHide: false
-        }
-    },
-    methods: {
-        // handlePubMedIdLink(id) {
-        //     var link = "https://www.ncbi.nlm.nih.gov/pubmed/?term=" + id;
-        //     window.open(link, "_blank");
-        // },
-        getPubMedIdLink(id) {
-            return "https://www.ncbi.nlm.nih.gov/pubmed/?term=" + id;
-        },
-        // handleNCTIdLink(id) {
-        //     var link = "https://clinicaltrials.gov/ct2/show/" + id;
-        //     window.open(link, "_blank");
-        // },
-        getNCTIDLink(id) {
-            return "https://clinicaltrials.gov/ct2/show/" + id;
-        },
-        parseDate(annotation) {
-            if (annotation.modifiedDate) {
-                return annotation.modifiedSince + " (" + annotation.modifiedDate.split("T")[0] + ")";
-            }
-        },
-        isSNP() {
-            return this.variantType == "snp";
-        },
-        isCNV() {
-            return this.variantType == "cnv";
-        },
-        isTranslocation() {
-            return this.variantType == "translocation";
-        },
-        isVirus() {
-            return this.variantType == "virus";
-        },
-        annotationSelectionChanged() {
-            this.$emit("annotation-selection-changed");
-        },
-        startUserAnnotation(annotation) {
-            this.$emit("start-user-annotation", annotation);
-        },
-        copyAnnotation() {
-            if (this.canCopy) {
-                this.$emit("copy-annotation", this.annotation, this.variantType);
-            }
-        },
-        hideAnnotation() {
-            if (this.canHide) {
-                this.aboutToHide = false;
-                this.$emit("hide-annotation", this.annotation, this.variantType);
-            }
-        }
-    },
-    computed: {
-
-    },
-    created() {
-
-    },
-    destroyed() {
-    },
-    mounted() {
-    },
-    watch: {
+  data() {
+    return {
+      aboutToHide: false,
     }
-
-
-
-});
-
+  },
+  methods: {
+    // handlePubMedIdLink(id) {
+    //     var link = "https://www.ncbi.nlm.nih.gov/pubmed/?term=" + id;
+    //     window.open(link, "_blank");
+    // },
+    getPubMedIdLink(id) {
+      return "https://www.ncbi.nlm.nih.gov/pubmed/?term=" + id
+    },
+    // handleNCTIdLink(id) {
+    //     var link = "https://clinicaltrials.gov/ct2/show/" + id;
+    //     window.open(link, "_blank");
+    // },
+    getNCTIDLink(id) {
+      return "https://clinicaltrials.gov/ct2/show/" + id
+    },
+    parseDate(annotation) {
+      if (annotation.modifiedDate) {
+        return (
+          annotation.modifiedSince +
+          " (" +
+          annotation.modifiedDate.split("T")[0] +
+          ")"
+        )
+      }
+    },
+    isSNP() {
+      return this.variantType == "snp"
+    },
+    isCNV() {
+      return this.variantType == "cnv"
+    },
+    isTranslocation() {
+      return this.variantType == "translocation"
+    },
+    isVirus() {
+      return this.variantType == "virus"
+    },
+    annotationSelectionChanged() {
+      this.$emit("annotation-selection-changed")
+    },
+    startUserAnnotation(annotation) {
+      this.$emit("start-user-annotation", annotation)
+    },
+    copyAnnotation() {
+      if (this.canCopy) {
+        this.$emit("copy-annotation", this.annotation, this.variantType)
+      }
+    },
+    hideAnnotation() {
+      if (this.canHide) {
+        this.aboutToHide = false
+        this.$emit("hide-annotation", this.annotation, this.variantType)
+      }
+    },
+  },
+  computed: {},
+  created() {},
+  destroyed() {},
+  mounted() {},
+  watch: {},
+})

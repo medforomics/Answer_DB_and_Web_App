@@ -653,6 +653,8 @@ public class ModelDAO {
 		Query<GenericBarPlotData> query = session.createNativeQuery(sb.toString())
 				.setParameter("hugoSymbol", hugoSymbol)
 				.setParameterList("cancers", cancers);
+//		System.out.println("hugoSymbol: " +  hugoSymbol);
+//		System.out.println("cancers: " +  cancers);
 		
 		return query.setResultTransformer(new ResultTransformer() {
 			private static final long serialVersionUID = 1L;

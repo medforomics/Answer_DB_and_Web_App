@@ -42,7 +42,7 @@
 		<mvc:resources location="file:/opt/answer/search/html/" mapping="/search/**" />
 	<mvc:resources location="file:/opt/answer/links/media/" mapping="/media/**" />
 	<mvc:resources location="file:/opt/answer/links/images/" mapping="/images/**" />
-		<mvc:resources location="file:/opt/answer/goodies/" mapping="/goodies/**" />
+	<mvc:resources location="file:/opt/answer/goodies/" mapping="/goodies/**" />
 
 	<!-- Define Spring MVC view resolver -->
 	<bean	id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
@@ -152,6 +152,7 @@
 		<property name="pdfDraftWatermarkName" value="${pdf.draft.watermark.name}" />
 		<property name="imageLinksPath" value="${image.link.location}" />
 		<property name="imageFilesPath" value="${image.file.location}" />
+		<property name="pdfAddressPath"  value="${pdf.address.path}" />
 		
 	</bean>
 	
@@ -177,6 +178,7 @@
 		<property name="epicHl7Hostname" value="${epic.hl7.host}" />
 		<property name="epicHl7Port" value="${epic.hl7.port}" />
 		<property name="institutionName" value="${institution.name}" />
+	
 	</bean>
 	
 	<bean id="ncbiProps" class="utsw.bicf.answer.security.NCBIProperties">

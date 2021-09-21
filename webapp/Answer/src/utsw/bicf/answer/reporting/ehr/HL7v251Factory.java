@@ -97,7 +97,8 @@ public class HL7v251Factory {
 	String overrideReportDate;
 	EnsemblRequestUtils ensemblUtils;
 	String overrideSendingFacilityCode;
-	
+	String overrideReceivingApplication;
+	boolean skipBeaker;
 	
 	
 	public HL7v251Factory(Report report, OrderCase caseSummary, RequestUtils requestUtils, File pdfFile, 
@@ -107,7 +108,9 @@ public class HL7v251Factory {
 			String overrideProviderIdName,
 			String beakerId, String overrideTestName,
 			String overrideReportDate, 
-			String overrideSendingFacilityCode, ModelDAO modelDAO) {
+			String overrideSendingFacilityCode, String overrideReceivingApplication, 
+			boolean skipBeaker,
+			ModelDAO modelDAO) {
 		super();
 		this.report = report;
 		this.caseSummary = caseSummary;
@@ -129,6 +132,8 @@ public class HL7v251Factory {
 		this.ensemblUtils = new EnsemblRequestUtils(ensemblProps, otherProps);
 		this.modelDAO = modelDAO;
 		this.overrideSendingFacilityCode = overrideSendingFacilityCode;
+		this.overrideReceivingApplication = overrideReceivingApplication;
+		this.skipBeaker = skipBeaker;
 	}
 	
 	public String reportToHL7(boolean humanReadable) throws HL7Exception, IOException, URISyntaxException {
@@ -166,7 +171,12 @@ public class HL7v251Factory {
 			sendingFacility = this.overrideSendingFacilityCode;
 		}
 		mshSegment.getSendingFacility().getNamespaceID().setValue(sendingFacility);
-		mshSegment.getReceivingApplication().getNamespaceID().setValue(UTSWProps.RECEIVING_APPLICATION);
+		if (this.overrideReceivingApplication != null) {
+			mshSegment.getReceivingApplication().getNamespaceID().setValue(this.overrideReceivingApplication);
+		}
+		else {
+			mshSegment.getReceivingApplication().getNamespaceID().setValue(UTSWProps.RECEIVING_APPLICATION);
+		}
 		mshSegment.getReceivingFacility().getNamespaceID().setValue(UTSWProps.RECEIVING_FACILITY);
 		mshSegment.getDateTimeOfMessage().getTime().setValue(TypeUtils.hl7DateTimeFormatter.format(LocalDateTime.now()));
 		if (this.overridePatientName != null) {
@@ -187,9 +197,11 @@ public class HL7v251Factory {
 		if (this.overrideProviderIdName != null) {
 			caseSummary.setOrderingPhysician(overrideProviderIdName);
 		}
+		boolean overwritten = false;
 		if (this.overrideTestName != null) {
 			caseSummary.setLabTestName(overrideTestName);
 			caseSummary.setTumorPanel(overrideTestName);
+			overwritten = true;
 		}
 		
 		if (caseSummary.getTumorPanel() == null || caseSummary.getTumorPanel().equalsIgnoreCase("Solid")) {
@@ -236,9 +248,12 @@ public class HL7v251Factory {
 		else if (caseSummary.getLabTestName().equals(UTSWProps.PAN_CANCER_NAME)) {
 			obr.getUniversalServiceIdentifier().getIdentifier().setValue("170169");
 		}
+		else if (overwritten) {
+			obr.getUniversalServiceIdentifier().getIdentifier().setValue("170171");
+		}
 		obr.getUniversalServiceIdentifier().getText().setValue(caseSummary.getLabTestName());
 		
-		if (this.notNullOrEmpty(caseSummary.getHl7SampleId())) {
+		if (this.notNullOrEmpty(caseSummary.getHl7SampleId()) && !this.skipBeaker) {
 			obr.getFillerOrderNumber().getEntityIdentifier().setValue(caseSummary.getHl7SampleId());
 			obr.getFillerOrderNumber().getNamespaceID().setValue("Beaker");
 		}

@@ -943,8 +943,10 @@ public class APIController {
 			@RequestParam(required = false) String beakerId,
 			@RequestParam(required = false) String overrideTestName,
 			@RequestParam(required = false) boolean hidePatientInfo,
+			@RequestParam(required = false) boolean skipBeaker,
 			@RequestParam(required = false) String overrideReportDate,
 			@RequestParam(required = false) String overrideSendingFacilityCode,
+			@RequestParam(required = false) String overrideReceivingApplication,
 			HttpSession httpSession, @RequestParam(defaultValue = "false") Boolean hl7Only
 			) throws IOException, InterruptedException, URISyntaxException, HL7Exception {
 		httpSession.setAttribute("user", "API User from testEpicReportHL7");
@@ -964,7 +966,7 @@ public class APIController {
 		
 		String res = testHL7Report(caseId, overridePatientName, overrideMRN, overrideDOB, overrideGender, overrideOrder,
 				overrideProviderIdName, beakerId, overrideTestName, overrideReportDate, 
-				overrideSendingFacilityCode,
+				overrideSendingFacilityCode, overrideReceivingApplication, skipBeaker,
 				hl7Only,
 				utils, caseSummary,
 				modelDAO, fileProps, ensemblProps, otherProps).createObjectJSON();
@@ -976,7 +978,8 @@ public class APIController {
 	public static AjaxResponse testHL7Report(String caseId, String overridePatientName, String overrideMRN, String overrideDOB,
 			String overrideGender, String overrideOrder, String overrideProviderIdName,
 			String beakerId, String overrideTestName, String overrideReportDate, 
-			String overrideSendingFacilityCode,
+			String overrideSendingFacilityCode, String overrideReceivingApplication,
+			Boolean skipBeaker,
 			Boolean hl7Only,
 			RequestUtils utils, OrderCase caseSummary,
 			ModelDAO modelDAO, FileProperties fileProps, EnsemblProperties ensemblProps,
@@ -995,8 +998,8 @@ public class APIController {
 		if (TypeUtils.notNullNotEmpty(beakerId)) {
 			caseSummary.setHl7SampleId(beakerId);
 		}
-		if (caseSummary.getHl7OrderId() == null || caseSummary.getHl7SampleId() == null
-				|| caseSummary.getHl7OrderId().equals("N/A") || caseSummary.getHl7SampleId().equals("N/A")) {
+		if (!skipBeaker && (caseSummary.getHl7OrderId() == null || caseSummary.getHl7SampleId() == null
+				|| caseSummary.getHl7OrderId().equals("N/A") || caseSummary.getHl7SampleId().equals("N/A"))) {
 			response.setMessage("Case " + caseId + " is missing the reportOrderNumber or reportAccessionId.");
 			return response;
 		}
@@ -1041,7 +1044,7 @@ public class APIController {
 			HL7v251Factory hl7Factory = new HL7v251Factory(reportDetails, caseSummary, utils, pdfFile, ensemblProps, otherProps, 
 					overridePatientName, overrideMRN, overrideDOB, overrideGender, overrideOrder,
 					overrideProviderIdName, beakerId, overrideTestName, overrideReportDate,
-					overrideSendingFacilityCode,
+					overrideSendingFacilityCode, overrideReceivingApplication, skipBeaker,
 					modelDAO);
 			String hl7 = hl7Factory.reportToHL7(true);
 //			if (hl7Only) {
@@ -1070,9 +1073,12 @@ public class APIController {
 			@RequestParam(required = false) String beakerId,
 			@RequestParam(required = false) String overrideTestName,
 			@RequestParam(required = false) boolean hidePatientInfo,
+			@RequestParam(required = false) boolean skipBeaker,
 			@RequestParam(required = false) String overrideReportDate,
 			@RequestParam(required = false) String overridePort,
+			@RequestParam(required = false) String overrideServer,
 			@RequestParam(required = false) String overrideSendingFacilityCode,
+			@RequestParam(required = false) String overrideReceivingApplication,
 			HttpSession httpSession) throws IOException, InterruptedException, URISyntaxException, HL7Exception {
 		httpSession.setAttribute("user", "API User from sendEpicReportHL7");
 //		long now = System.currentTimeMillis();
@@ -1093,15 +1099,15 @@ public class APIController {
 			response.setMessage("Case " + caseId + " does not exist.");
 			return response.createObjectJSON();
 		}
-		if (caseSummary.getHl7OrderId() == null || caseSummary.getHl7SampleId() == null
-				|| caseSummary.getHl7OrderId().equals("N/A") || caseSummary.getHl7SampleId().equals("N/A")) {
+		if (!skipBeaker && (caseSummary.getHl7OrderId() == null || caseSummary.getHl7SampleId() == null
+				|| caseSummary.getHl7OrderId().equals("N/A") || caseSummary.getHl7SampleId().equals("N/A"))) {
 			response.setMessage("Case " + caseId + " is missing the reportOrderNumber or reportAccessionId.");
 			return response.createObjectJSON();
 		}
 		
 		sendReportToEpic(caseId, overridePatientName, overrideMRN, overrideDOB, overrideGender, overrideOrder,
 				overrideProviderIdName, beakerId, overrideTestName, hidePatientInfo, overrideReportDate,
-				overridePort, overrideSendingFacilityCode,
+				overridePort, overrideServer, overrideSendingFacilityCode, overrideReceivingApplication, skipBeaker,
 				response, utils, caseSummary,
 				modelDAO, fileProps, ensemblProps, otherProps);
 
@@ -1114,13 +1120,14 @@ public class APIController {
 			ModelDAO modelDAO, FileProperties fileProps, EnsemblProperties ensemblProps,
 			OtherProperties otherProps)
 			throws JsonParseException, JsonMappingException, IOException, URISyntaxException, JsonProcessingException {
-		APIController.sendReportToEpic(caseId, null, null, null, null, null, null, null, null, false, null, null, null, response, utils, caseSummary, modelDAO, fileProps, ensemblProps, otherProps);
+		APIController.sendReportToEpic(caseId, null, null, null, null, null, null, null, null, false, null, null, null, null, null, false, response, utils, caseSummary, modelDAO, fileProps, ensemblProps, otherProps);
 	}
 
 	public static void sendReportToEpic(String caseId, String overridePatientName, String overrideMRN, String overrideDOB,
 			String overrideGender, String overrideOrder, String overrideProviderIdName,
 			String beakerId, String overrideTestName, boolean hidePatientInfo, String overrideReportDate,
-			String overridePort, String overrideSendingFacilityCode,
+			String overridePort, String overrideServer, String overrideSendingFacilityCode, String overrideReceivingApplication,
+			boolean skipBeaker,
 			AjaxResponse response, RequestUtils utils, OrderCase caseSummary,
 			ModelDAO modelDAO, FileProperties fileProps, EnsemblProperties ensemblProps,
 			OtherProperties otherProps)
@@ -1159,6 +1166,7 @@ public class APIController {
 		InputStream input = null;
 		BufferedReader reader = null;
 		try {
+			System.out.println("Before creating HL7 report for :" + caseId);
 			FinalReportPDFTemplate pdfReport = new FinalReportPDFTemplate(reportDetails, fileProps, caseSummary, otherProps, signedBy, clinicalTest, hidePatientInfo);
 			File pdfFile = pdfReport.saveFinalized(true);
 			HL7v251Factory hl7Factory = new HL7v251Factory(reportDetails, caseSummary, utils, pdfFile, ensemblProps, otherProps
@@ -1169,20 +1177,30 @@ public class APIController {
 					overrideOrder,
 					overrideProviderIdName, beakerId, overrideTestName,
 					overrideReportDate, 
-					overrideSendingFacilityCode,
+					overrideSendingFacilityCode, overrideReceivingApplication, skipBeaker,
 					modelDAO);
 			String hl7 = hl7Factory.reportToHL7(false);
 			System.out.println(hl7);
 			Integer port = otherProps.getEpicHl7Port();
+			String server = otherProps.getEpicHl7Hostname();
 			if (TypeUtils.notNullNotEmpty(overridePort)) {
 				port = Integer.parseInt(overridePort);
 			}
-			socket = new Socket(otherProps.getEpicHl7Hostname(), port);
+			if (TypeUtils.notNullNotEmpty(overrideServer)) {
+				server = overrideServer;
+			}
+			System.out.println("Sending HL7 to: " + server + ":"+  port);
+			socket = new Socket(server, port);
+			System.out.println("After creating a socket");
 			output = socket.getOutputStream();
+			System.out.println("After socket.getOutputStream()");
 			writer = new PrintWriter(output, true);
 			writer.println(hl7);
+			System.out.println("After writer.println(hl7)");
 			input = socket.getInputStream();
+			System.out.println("After input = socket.getInputStream()");
 			reader = new BufferedReader(new InputStreamReader(input));
+			System.out.println("After reader = new BufferedReader(new InputStreamReader(input))");
 			String line;
 			while ((line = reader.readLine()) != null) {
 				System.out.println(line); //handle response?
