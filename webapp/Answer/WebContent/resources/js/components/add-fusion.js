@@ -169,7 +169,7 @@ Vue.component('add-fusion', {
             if (!this.leftGene || !this.rightGene) {
                 return "";
             }
-            return (this.leftGene + "--" + this.rightGene).toUpperCase();
+            return (this.leftGene + "::" + this.rightGene).toUpperCase();
         },
         capitalizeLeftGene() {
             this.leftGene = this.leftGene.toUpperCase();

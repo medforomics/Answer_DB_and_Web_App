@@ -80,6 +80,9 @@ public class Translocation {
 	}
 
 	public String getFusionName() {
+		if (fusionName != null) {
+			return fusionName.replaceAll("--", "::");
+		}
 		return fusionName;
 	}
 

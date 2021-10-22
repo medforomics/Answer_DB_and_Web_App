@@ -902,7 +902,7 @@ Vue.component('edit-annotations', {
                                     biomarker = this.currentVariant.chrom;
                                 }
                                 else {
-                                    biomarker = this.currentVariant.leftGene + "--" + this.currentVariant.rightGene;
+                                    biomarker = this.currentVariant.leftGene + "::" + this.currentVariant.rightGene;
                                 }
                                 an.trial.biomarker = biomarker;
                             }

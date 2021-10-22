@@ -2037,7 +2037,7 @@ public class OpenCaseController {
 			Translocation ftl = mapper.readValue(data, Translocation.class);
 			if (ftl != null) {
 				ftl.setCaseId(caseSummary.getCaseId());
-				ftl.setFusionName(ftl.getLeftGene() + "--" + ftl.getRightGene());
+				ftl.setFusionName(ftl.getLeftGene() + "::" + ftl.getRightGene());
 				utils.saveFusion(response, ftl, caseId);
 			}
 			else {

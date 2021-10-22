@@ -434,35 +434,7 @@ public class HL7v251Factory {
 			v.setHgncCode("0");
 //			v.setAaChange(gva.getVariant());
 			Variant variant = requestUtils.getVariantDetails(gva.getOid());
-			v.setRef(variant.getReference());
-			v.setAlt(variant.getAlt());
-			v.setChr(variant.getChrom());
-			v.setStartEnd2020v(variant.getChrom() + ":" + variant.getPos());
-			v.setStart2018v(variant.getPos());
-			v.setEnd2018v(variant.getPos() + v.getRef().length() - v.getAlt().length());
-//			if (variant.getSomaticStatus() != null && variant.getSomaticStatus().equals("Germline")) {
-//				v.setClinicalSignificance(LOINC.getCode(clinicalSignificanceGermline));
-//			}
-//			else {
-//				v.setClinicalSignificance(LOINC.getCode(clinicalSignificanceSomatic));
-//			}
-			//Germline and Unknown are treated the same way
-			if (variant.getSomaticStatus() != null && variant.getSomaticStatus().equals("Somatic")) {
-				v.setClinicalSignificance(LOINC.getCode(clinicalSignificanceSomatic));
-			}
-			else {
-				v.setClinicalSignificance(LOINC.getCode(clinicalSignificanceGermline));
-			}
-			String featureId = "";
-			if (variant.getVcfAnnotations() != null && !variant.getVcfAnnotations().isEmpty()) {
-				featureId = variant.getVcfAnnotations().get(0).getFeatureId();
-				if (featureId.contains("ENST")) {
-					featureId = "ENST" + featureId.split("ENST")[1];
-				}
-			}
-			v.setTranscript(featureId);
-			v.setAllFreq(variant.getTumorAltFrequency());
-			v.setDepth(variant.getTumorTotalDepth());
+			
 			VCFAnnotation workingAnn = variant.getVcfAnnotations().get(0);
 			for (VCFAnnotation vcfAnn : variant.getVcfAnnotations()) {
 				String gene = vcfAnn.getGeneName();
@@ -499,6 +471,53 @@ public class HL7v251Factory {
 			if (this.notNullOrEmpty(pNotation)) {
 				v.setpNotation(pNotation);
 			}
+			
+			if (variant.getReference() != null && variant.getReference().length() > 50) {
+				v.setRef("-");
+				if (cNotation != null) {
+					v.setAlt(cNotation.split("[ACGT]+")[0]); //only grab the part before bases
+				}
+				else if (pNotation != null) {
+					v.setAlt(pNotation.split("[ACGT]+")[0]); //only grab the part before bases
+				}
+				else {
+					v.setAlt("-");
+				}
+			}
+			else {
+				v.setRef(variant.getReference());
+				v.setAlt(variant.getAlt());
+				
+			}
+			
+			v.setChr(variant.getChrom());
+			v.setStartEnd2020v(variant.getChrom() + ":" + variant.getPos());
+			v.setStart2018v(variant.getPos());
+			v.setEnd2018v(variant.getPos() + v.getRef().length() - v.getAlt().length());
+//			if (variant.getSomaticStatus() != null && variant.getSomaticStatus().equals("Germline")) {
+//				v.setClinicalSignificance(LOINC.getCode(clinicalSignificanceGermline));
+//			}
+//			else {
+//				v.setClinicalSignificance(LOINC.getCode(clinicalSignificanceSomatic));
+//			}
+			//Germline and Unknown are treated the same way
+			if (variant.getSomaticStatus() != null && variant.getSomaticStatus().equals("Somatic")) {
+				v.setClinicalSignificance(LOINC.getCode(clinicalSignificanceSomatic));
+			}
+			else {
+				v.setClinicalSignificance(LOINC.getCode(clinicalSignificanceGermline));
+			}
+			String featureId = "";
+			if (variant.getVcfAnnotations() != null && !variant.getVcfAnnotations().isEmpty()) {
+				featureId = variant.getVcfAnnotations().get(0).getFeatureId();
+				if (featureId.contains("ENST")) {
+					featureId = "ENST" + featureId.split("ENST")[1];
+				}
+			}
+			v.setTranscript(featureId);
+			v.setAllFreq(variant.getTumorAltFrequency());
+			v.setDepth(variant.getTumorTotalDepth());
+		
 			//DNA Change Type
 			if (v.getRef().length() != v.getAlt().length()) {
 				v.setDnaChangeType("Insertion/Deletion");
@@ -733,6 +752,9 @@ public class HL7v251Factory {
 				v.setClinicalSignificance(LOINC.getCode("Tier 3"));
 			}
 		}
+		else { //old CNVs don't have a highest tier?
+			v.setClinicalSignificance(LOINC.getCode("Tier 3"));
+		}
 		vList.add(v);
 		return vList;
 	}
@@ -956,7 +978,7 @@ public class HL7v251Factory {
 		//Display Name
 		if (this.notNullOrEmpty(v.getDisplayName())) {
 			ST obxSbSNP = new ST(oru.getMessage());
-			obxSbSNP.setValue(this.sanitizeHL7Text(v.getDisplayName()));
+			obxSbSNP.setValue(this.truncate(this.sanitizeHL7Text(v.getDisplayName()),191));
 			createVariantOBX(oru, currentVariantId, LOINC.getCode("DNA sequence variation display name [Text] Narrative"), obxSbSNP);
 		}
 		
@@ -1214,7 +1236,7 @@ public class HL7v251Factory {
 		//Cytoband
 		if (v.getCytoband() != null && v.getCytoband() != null) {
 			ST obxCytoband = new ST(oru.getMessage());
-			obxCytoband.setValue(this.sanitizeHL7Text(v.getChr().replace("chr", "") +  v.getCytoband()));
+			obxCytoband.setValue(this.truncate(this.sanitizeHL7Text(v.getChr().replace("chr", "") +  v.getCytoband()), 20));
 			createVariantOBX(oru, currentVariantId, LOINC.getCode("Cytogenetic (chromosome) location"), obxCytoband);
 		}
 		//Somatic/Germline
@@ -1424,4 +1446,10 @@ public class HL7v251Factory {
 		return annotations;
 	}
 	
+	private String truncate(String text, int length) {
+		if (text == null || text.length() < length) {
+			return text;
+		}
+		return text.substring(0, length);
+	}
 }
